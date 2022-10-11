@@ -1,0 +1,219 @@
+匹配规则
+= 已"="开头表示精确匹配;如 A 中只匹配根目录结尾的请求，后面不能带任何字符串。
+^~ "^~" 开头表示uri以某个常规字符串开头，不是正则匹配
+~ ~ 开头表示区分大小写的正则匹配;
+~*  ~* 开头表示不区分大小写的正则匹配
+/ 通用匹配, 如果没有其它匹配,任何请求都会匹配到
+
+nginx启动时定义的变量
+
+参数 说明 案例
+$http_header 可以用来获得header的值，比如$http_user_agent 就是获取header中的UA
+
+$uri 请求的URI，可能和最初的值有不同，比如经过重定向之类的
+
+$server_port 请求到达的服务器端口号
+
+$server_name 请求到达的服务器名
+
+$server_addr  服务器地址
+
+$server_protocol  请求的协议版本，"HTTP/1.0"或"HTTP/1.1"
+
+$scheme 所用的协议，比如http或者是https，比如rewrite  ^(.+)>nbsp; $scheme://example.com$1  redirect
+
+$query_string 与$args相同
+
+$request_uri  请求的URI，带参数
+
+$remote_user  客户端用户名，认证用;
+
+$request_filename 当前请求的文件路径名
+
+$remote_port  客户端端口号
+
+$remote_addr  客户端地址 211.28.65.253
+$request_method 请求的方法，比如"GET"、"POST"等
+
+$host 请求信息中的"Host"，如果请求中没有Host行，则等于设置的服务器名
+
+$content_type 请求信息里的"Content-Type"
+
+$content_length HTTP请求信息里的"Content-Length"
+
+$args 请求中的参数字符串 比如 name=123&age=24
+
+$arg_参数名  在location中获取客户端请求的参数xx?name=123  那$arg_name就是对应的值123
+
+$time_local 用来记录访问时间与时区 16/Jul/2018:00:28:11 +0000
+$request  用来记录请求的url与http协议 GET /wfapp/lawyer/info/get-basic?sid=oNV3_tjQ64xnRt1vxImQFHcWbbs0 HTTP/1.0
+$status 用来记录请求状态;成功是200 200
+$body_bytes_sent  记录发送给客户端文件主体内容大小  694
+$http_referer 用来记录从那个页面链接访问过来的
+
+$http_user_agent  记录客户浏览器的相关信息  Mozilla/5.0 (Windows NT 6.2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36
+
+日志
+错误日志：
+error_log log/error.log debug;  #制定日志路径，级别。这个设置可以放入全局块，http块，server块，
+级别以此为：debug|info|notice|warn|error|crit|alert|emerg
+
+访问日志:
+access_log log/access.log main; #路径 ，存储格式
+
+log_format:
+日志格式
+      log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+          '$status $body_bytes_sent "$http_referer" '
+          '"$http_user_agent" "$http_x_forwarded_for"';
+
+案列
+
+log_format  main  '[$remote_addr][$remote_user][$time_local][$request]'
+    '[$http_host][$status][$upstream_status][$body_bytes_sent][$http_referer]'
+    '[$http_user_agent][$ssl_protocol][$ssl_cipher][$upstream_addr][$request_time]'
+    '[upstream_response_time]';
+    
+[111.197.112.254][-][17/Jul/2018:08:07:30 +0800][GET /wfapp/lawyer/info/get-basic?sid=oNV3_tjQ64xnRt1vxImQFHcWbbs0 HTTP/1.1][47.98.161.8:8080][200][200][706][-][Mozilla/5.0 (Windows NT 6.2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/67.0.3396.99 Safari/537.36][-][-][127.0.0.1:8002][0.179][0.178]
+
+try_files [uri] [uri] [uri]
+：服务器尝试访问后面配置的地址
+
+
+$request_uri、$uri、$document_uri
+$request_uri ： /stat.php?id=1585378&web_id=1585378
+$uri ：  /stat.php
+$document_uri ：  /stat.php
+
+配置的主要模块
+
+1、全局块：配置影响nginx全局的指令。一般有运行nginx服务器的用户组，nginx进程pid存放路径，日志存放路径，配置文件引入，允许生成worker process数等。
+2、events块：配置影响nginx服务器或与用户的网络连接。有每个进程的最大连接数，选取哪种事件驱动模型处理连接请求，是否允许同时接受多个网路连接，开启多个网络连接序列化等。
+3、http块：可以嵌套多个server，配置代理，缓存，日志定义等绝大多数功能和第三方模块的配置。如文件引入，mime-type定义，日志自定义，是否使用sendfile传输文件，连接超时时间，单连接请求数等。
+4、server块：配置虚拟主机的相关参数，一个http中可以有多个server。
+5、location块：配置请求的路由，以及各种页面的处理情况。
+
+简单指令
+
+配置运行nginx服务器用户组
+user user [group];
+user  nobody nobody
+作用：主要用来控制启动用户权限
+作用域：全局块
+如果希望所有用户都可以启动nginx进程,一个是将user注释掉，或者设置为nobody
+
+配置允许生成的work process数
+work_processes number | auto;
+一般根据cpu个数决定工作进程的number
+作用域：全局块
+
+配置nginx进程PID存放路径
+pid file;
+作用：主要为了记录及查询master进程的PID
+作用域：全局块
+
+配置错误日志的
+error_log file | stderr[debug|info|notice|warn|error|crit|alert|emerg]
+error_log logs/error.log error;
+注意：指定的文件对于运行nginx进程的用户具有写权限
+作用域：全局块、http块、server块、location块
+
+配置文件的引入
+include file;
+include       mime.types;
+
+设置网络连接的序列化
+accept_mutex on | off;
+作用：解决“惊群”的问题
+作用域：events块/
+
+设置是否允许同时接受多个网络连接
+multi_accept on | off;
+nginx每个工作进程有能力接受多个新到达的网络连接
+作用域：events块
+
+设置事件驱动模型的选择
+use method; # [select|poll|kqueue|epoll|rtsig|/dec/poll|eventport]
+换种说法就是I/O模型
+作用域：events块
+
+配置最大连接数
+work_connections number;
+用来设置每一个工作进程同时开启的最大连接数
+number包括，所有可能的连接数
+作用域：events块
+
+定义MEME-Type
+include       mime.types;
+default_type  application/octet-stream;
+网络资源的媒体类型
+作用域：http块、server块、location块
+
+自定义服务日志
+access_log file [format[buffer=size]];
+file : 存放日志文件的路径
+format : 可选项 自定义文件格式 可以通过log_format 指定定义日志格式
+size:可选项 配置零食存放日志的内存缓存大小
+
+log_format name string;
+name:格式字符串的名字
+string：服务日志的格式字符串
+
+log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
+    '$status $body_bytes_sent "$http_referer" '
+    '"$http_user_agent" "$http_x_forwarded_for"';
+作用域：http块、server块、location块    
+
+配置允许sendfile方式传输文件
+sendfile on | off;
+sendfile_max_chunk size;
+size 0 ：不限制 >0 代表工作进程调用sendfile不能超过sieze;
+作用：设置文件传输模式，主要应用场景频繁大文件传输
+作用域：http块、server块、location块 
+
+配置连接超时时间
+keepalive_timeout timeout[header_timeout]
+timeout : 服务器对两届保持时间 默认75s
+header_timeout : 可选项 在应答报文头部Keep-Alive域设置超市时间
+与用户建立会话连接后，可以保持连接打开一段时间
+作用域：server块、location块 
+
+单连接请求书上线
+keepalive_requests number; 默认100
+作用域：server块、location块
+
+配置网络监听
+listen 
+存在三种配置语法
+配置监听IP地址
+配置监听端口
+配置unix Domain Socket
+
+基于名称的虚拟主机配置
+server_name name;
+
+指定web目录
+root file
+root /data/www
+作用域 ： 可以配置在http、server、location下
+
+定义索引文件名称即默认访问文件
+index filename
+index index.html index.php index.htm
+
+返回自动生成的目录列表
+autoindx
+autoindex on
+
+
+ 
+参考
+
+	1. nginx配置location总结及rewrite规则写法
+	2. nginx快速入门
+	3. https://www.cnblogs.com/knowledgesea/p/5175711.html
+	4. http://www.yiibai.com/nginx/nginx-architecture.html
+	5. sendfile()对nginx性能的提升
+	6. sendfile原理，实现文件传输性能的提升
+
+
