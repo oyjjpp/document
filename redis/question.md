@@ -39,6 +39,7 @@
 
 ### redis持久化？
 
+``` redis
 RDB：将redis数据根据配置同步到磁盘上【二进制压缩文件】  
 1、同步是可能会影响redis性能，突然redis异常，会有段数据没有得到保存  
 2、同步的两个命令SAVE（会阻塞redis）、BGSAVE（fork一个子进程异步处理）  
@@ -56,10 +57,14 @@ AOF：将redis执行的有关数据操作命令同步到磁盘上
 2、aof比rdb更安全也更大  
 3、rdb性能比aof好
 
+```
+
 ### 分布式锁
 
+```redis
 setnx + expire
 set nx ex
+```
 
 ### 如果有大量key需要设置同一时间过期，一般要注意什么？
 
