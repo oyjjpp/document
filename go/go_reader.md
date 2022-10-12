@@ -647,7 +647,6 @@ func ToUpperSpecial(_case unicode.SpecialCase, s []byte) []byte
 func ToLowerSpecial(_case unicode.SpecialCase, s []byte) []byte  
 func ToTitleSpecial(_case unicode.SpecialCase, s []byte) []byte  
 // 将 s 中的所有单词的首字符修改为 Title 格式返回。  
-// BUG:**不能很好的处理以 Unicode 标点符号分隔的单词。**
 func Title(s []byte) []byte  
 
 
