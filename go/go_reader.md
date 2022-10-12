@@ -60,6 +60,7 @@
 
 ##### 2、标准输出
 
+```golang
 >// Print 将参数列表 a 中的各个参数转换为字符串并写入到标准输出中。  
 >// 非字符串参数之间会添加空格，返回写入的字节数。  
 >func Print(a ...interface{}) (n int, err error)  
@@ -72,7 +73,7 @@
 >// 填写后的结果写入到标准输出中，返回写入的字节数。  
 >func Printf(format string, a ...interface{}) (n int, err error)
 
-```golang
+
 //常见输出
 func fmtPrint()  {
     fmt.Print("aaa", 12, []byte("fmt"))
@@ -83,12 +84,13 @@ func fmtPrint()  {
 
 ##### 3、通过Sprint将参数转换为字符串
 
+```golang
 >// 功能同上面三个函数，只不过将转换结果以字符串形式返回。  
 func Sprint(a ...interface{}) string  
 func Sprintln(a ...interface{}) string  
 func Sprintf(format string, a ...interface{}) string
 
-```golang
+
 //通过Sprint将参数转换为字符串
 func fmtSPrint()  {
     s1 := fmt.Sprint("aaa", 12, []byte("fmt"))
@@ -101,12 +103,12 @@ func fmtSPrint()  {
 
 ##### 4、将转换结果写入到write中
 
+```golang
 >// 功能同上面三个函数，只不过将转换结果写入到 w 中。  
 func Fprint(w io.Writer, a ...interface{}) (n int, err error)  
 func Fprintln(w io.Writer, a ...interface{}) (n int, err error)  
 func Fprintf(w io.Writer, format string, a ...interface{}) (n int, err error)
 
-```golang
 func fmtFPrint() {
     // unbuffered
     fmt.Fprintf(os.Stdout, "%s\n", "hello world! - unbuffered")
@@ -178,18 +180,19 @@ func (us User) Format(f fmt.State, c rune)  {
 
 #### strings
 
-##### 1、简介
+##### 1、strings简介
 
 strings包实现了用于操作字符的简单函数。
 
 ##### 2、比较
 
+```golang
 >//比较两个字符串  相等返回0 大于返回1 小于 返回-1  
 func Compare(a, b string) int  
 //判断两个utf-8编码字符串（将unicode大写、小写、标题三种格式字符视为相同）是否相同。  
 >func EqualFold(s, t string) bool
 
-```golang
+
 func stringCompare()  {
     a := "This is a strings"
     b := "THis is a string"
@@ -203,6 +206,8 @@ func stringCompare()  {
 ```
 
 ##### 3、转换
+
+```golang
 
 >//大写、小写、Title格式转换  
 func ToUpper(s string) string  
@@ -218,7 +223,6 @@ func ToTitleSpecial(_case unicode.SpecialCase, s string) string
 **Title用于划分单词的规则不能很好的处理Unicode标点符号。**  
 func Title(s string) string
 
-```golang
 //大写、小写、Title转换
 func stringUpperLower(){
     //返回将所有字母都转为对应的小写版本的拷贝
@@ -235,6 +239,7 @@ func stringUpperLower(){
 
 ##### 4、清理
 
+```golang
 >//返回将s前后端所有cutset包含的utf-8码值都去掉的字符串。  
 func Trim(s string, cutset string) string  
 func TrimLeft(s string, cutset string) string  
@@ -252,7 +257,7 @@ func TrimSpace(s string) string
 func TrimPrefix(s, prefix string) string  
 func TrimSuffix(s, suffix string) string  
 
-```golang
+
 func stringTrim()  {
     origin := " !!! Achtung! Achtung! !!! "
     cutset := "! "
@@ -272,6 +277,7 @@ func stringTrim()  {
 
 ##### 5、分割及拼接
 
+```golang
 >//根据指定字符串进行切割 返回[]string类型切片  
 func Split(s, sep string) []string  
 func SplitN(s, sep string, n int) []string
@@ -290,7 +296,7 @@ func Join(a []string, sep string) string
 >//返回count个s串联的字符串。  
 func Repeat(s string, count int) string
 
-```golang
+
 //字符串的切割与连接
 func stringSplit()  {
     //根据指定字符串进行切割，返回[]string
@@ -320,6 +326,7 @@ func stringSplit()  {
 
 ##### 6、子串
 
+```golang
 >判断s是否有前缀字符串prefix(后缀字符串suffix)。  
 func HasPrefix(s, prefix string) bool  
 func HasSuffix(s, suffix string) bool
@@ -345,7 +352,6 @@ func LastIndexFunc(s string, f func(rune) bool) int
 >返回字符串s中有几个不重复的sep子串。  
 func Count(s, sep string) int
 
-```golang
 func stringSubstring()  {
     a := "this is a string"
     //前缀
@@ -380,11 +386,13 @@ func stringSubstring()  {
 
 ##### 7、替换
 
+```golang
 >返回将s中前n个不重叠old子串都替换为new的新字符串，如果n<0会替换所有old子串。  
 func Replace(s, old, new string, n int) string
 
 >将s的每一个unicode码值r都替换为mapping(r)，返回这些新码值组成的字符串拷贝。如果mapping返回一个负值，将会丢弃该码值而不会被替换  
 func Map(mapping func(rune) rune, s string) string
+```
 
 ```golang
 func stringReplace()  {
@@ -406,12 +414,13 @@ func stringReplace()  {
 
 #### strconv
 
-##### 1、简介
+##### 1、strconv简介
 
 strconv包实现了基本数据类型和其字符串表示的相互转换。
 
 ##### 2、与bool类型相互转换
 
+```golang
 >// 将布尔值转换为字符串 true 或 false  
 func FormatBool(b bool) string
 
@@ -421,7 +430,7 @@ func FormatBool(b bool) string
 // 其它任何值都返回一个错误。  
 func ParseBool(str string) (bool, error)
 
-```golang
+
 func strconvBool()  {
     var a bool = true
     rs := strconv.FormatBool(a)
@@ -436,6 +445,7 @@ func strconvBool()  {
 
 ##### 3、与整型相互转换
 
+```golang
 >// 将整数转换为字符串形式。base 表示转换进制，取值在 2 到 36 之间。  
 // 结果中大于 10 的数字用小写字母 a - z 表示。  
 func FormatInt(i int64, base int) string  
@@ -454,7 +464,7 @@ func Itoa(i int) string
 >// 将字符串转换为十进制整数，即：ParseInt(s, 10, 0) 的简写）  
 func Atoi(s string) (int, error)
 
-```golang
+
 func strconvInt() {
     var a int64 = 1992
     var b uint64 = uint64(a)
@@ -487,6 +497,7 @@ func strconvInt() {
 
 ##### 4、与浮点数相互转换
 
+```golang
 >// FormatFloat 将浮点数 f 转换为字符串形式  
 // f：要转换的浮点数  
 // fmt：格式标记（b、e、E、f、g、G）  
@@ -512,7 +523,7 @@ func FormatFloat(f float64, fmt byte, prec, bitSize int) string
 // 如果结果超出范围，则返回 ±Inf，err.Error = ErrRange  
 func ParseFloat(s string, bitSize int) (float64, error)  
 
-```golang
+
 func strconvFloat()  {
     //浮点数转换成字符串
     or := 0.123456789012345
@@ -536,13 +547,14 @@ func strconvFloat()  {
 
 ##### 5、将各种类型转换为字符串后追加到 dst 尾部
 
+```golang
 >// 将各种类型转换为字符串后追加到 dst 尾部。  
 func AppendInt(dst []byte, i int64, base int) []byte  
 func AppendUint(dst []byte, i uint64, base int) []byte  
 func AppendFloat(dst []byte, f float64, fmt byte, prec, bitSize int) []byte  
 func AppendBool(dst []byte, b bool) []byte  
 
-```golang
+
 func strconvAppend()  {
     var origin []byte = []byte("this is a string")
     var a int64 = 1992
@@ -553,6 +565,7 @@ func strconvAppend()  {
 
 ##### 6、特殊字符转换
 
+```golang
 >// 判断字符串是否可以不被修改的表示为一个单行的反引号字符串。  
 // 字符串中不能含有控制字符（除了 \t）和“反引号”字符，否则返回 false  
 func CanBackquote(s string) bool  
@@ -611,10 +624,11 @@ func Unquote(s string) (string, error)
 // 如果设置为双引号，则 s 中允许出现 \"、' 字符，不允许出现单独的 " 字符  
 // 如果设置为 0，则不允许出现 \' 或 \" 字符，但可以出现单独的 ' 或 " 字符  
 func UnquoteChar(s string, quote byte) (value rune, multibyte bool, tail string, err error)  
+```
 
-### bytes
+#### bytes
 
-##### 1、简介
+##### 1、bytes简介
 
 bytes包实现了操作[]byte的常用函数
 
@@ -623,6 +637,7 @@ bytes包实现了操作[]byte的常用函数
 
 ##### 2、转换（大小写）
 
+```golang
 > 将 s 中的所有字符修改为大写（小写、标题）格式返回。  
 func ToUpper(s []byte) []byte  
 func ToLower(s []byte) []byte  
@@ -632,10 +647,10 @@ func ToUpperSpecial(_case unicode.SpecialCase, s []byte) []byte
 func ToLowerSpecial(_case unicode.SpecialCase, s []byte) []byte  
 func ToTitleSpecial(_case unicode.SpecialCase, s []byte) []byte  
 // 将 s 中的所有单词的首字符修改为 Title 格式返回。  
-// BUG: **不能很好的处理以 Unicode 标点符号分隔的单词。**  
+// BUG:**不能很好的处理以 Unicode 标点符号分隔的单词。**
 func Title(s []byte) []byte  
 
-```golang
+
 func bytesUpperLower()  {
     a := []byte("I,am,is,a,gopher")
     upper := bytes.ToUpper(a)
@@ -652,6 +667,7 @@ func bytesUpperLower()  {
 
 ##### 3、分割及拼接
 
+```golang
 >// Split 以 sep 为分隔符将 s 切分成多个子串，结果不包含分隔符。  
 // 如果 sep 为空，则将 s 切分成 Unicode 字符列表。  
 // SplitN 可以指定切分次数 n，超出 n 的部分将不进行切分。  
@@ -672,7 +688,7 @@ func Join(s [][]byte, sep []byte) []byte
 // 将子串 b 重复 count 次后返回。  
 func Repeat(b []byte, count int) []byte
 
-```golang
+
 //截断
 func bytesSplit()  {
     a := []byte("  Hello   World !  ")
@@ -702,8 +718,9 @@ func bytesSplit()  {
 }
 ```
 
-##### 4、清理
+##### 4、strings清理
 
+```golang
 >// 去掉 s 两边（左边、右边）包含在 cutset 中的字符（返回 s 的切片）  
 func Trim(s []byte, cutset string) []byte  
 func TrimLeft(s []byte, cutset string) []byte  
@@ -720,7 +737,6 @@ func TrimSpace(s []byte) []byte
 func TrimPrefix(s, prefix []byte) []byte  
 func TrimSuffix(s, suffix []byte) []byte  
 
-```golang
 //清理
 func bytesTrim()  {
     bs := [][]byte{
@@ -755,6 +771,7 @@ func bytesTrim()  {
 
 ##### 5、比较
 
+```golang
 >// 比较两个 []byte，nil 参数相当于空 []byte。  
 // a <  b 返回 -1  
 // a == b 返回 0  
@@ -768,7 +785,7 @@ func Equal(a, b []byte) bool
 // 参考 unicode.SimpleFold 函数。  
 func EqualFold(s, t []byte) bool  
 
-```golang
+
 func bytesCompare()  {
       a := []byte("I am a gopher!")
       b := []byte("i am a gopher!")
@@ -806,6 +823,7 @@ func bytesCompare()  {
 
 ##### 6、查询子串
 
+```golang
 >// 判断 s 是否有前缀 prefix（后缀 suffix）  
 func HasPrefix(s, prefix []byte) bool  
 func HasSuffix(s, suffix []byte) bool  
@@ -836,9 +854,11 @@ func LastIndexFunc(s []byte, f func(r rune) bool) int
 
 >// 获取 sep 在 s 中出现的次数（sep 不能重叠）。  
 func Count(s, sep []byte) int  
+```
 
-##### 7、替换
+##### 7、strings替换
 
+```golang
 >// 将 s 中前 n 个 old 替换为 new，n < 0 则替换全部。  
 func Replace(s, old, new []byte, n int) []byte  
 
@@ -849,7 +869,6 @@ func Map(mapping func(r rune) rune, s []byte) []byte
 >// 将 s 转换为 []rune 类型返回  
 func Runes(s []byte) []rune
 
-```golang
 //替换
 func bytesReplace(){
     a := []byte("I am a gopher~")
@@ -876,9 +895,10 @@ func bytesReplace(){
 
 ##### 8、字节缓存
 
+```golang
 >bytes.Buffer是一个实现了读写方法的可变大小的字节缓冲。本类型的零值是一个空的可用于读写的缓冲。
 
-```golang
+
 //字节缓存案列
 func bytesBuffer()  {
     rd := bytes.NewBufferString("Hello World!")
@@ -906,7 +926,7 @@ func bytesBuffer()  {
 
 #### testing
 
-##### 1、简介
+##### 1、testing简介
 
 测试文件包含test functions（自动化测试）, benchmark functions（基准测试）, and example functions
 
@@ -933,6 +953,7 @@ go test -v -run A
 
 - 执行测试命令  
 
+```
 >//执行所有测试用例
 >go test -bench=.
 
@@ -965,6 +986,7 @@ go test -v -run A
 - 常用函数
 
 >b.ResetTimer() 是重置计时器，这样可以避免for循环之前的初始化代码的干扰
+```
 
 ##### 4、示例测试
 
