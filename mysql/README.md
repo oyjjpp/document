@@ -579,7 +579,8 @@ f、仅缓存索引
 ## Mysql相关锁
 
 [MySQL锁总结](https://zhuanlan.zhihu.com/p/29150809)  
-[全面了解mysql锁机制（InnoDB）与问题排查](https://juejin.cn/post/6844903668571963406)
+[全面了解mysql锁机制（InnoDB）与问题排查](https://juejin.cn/post/6844903668571963406)  
+[Mysql 共享锁(lock in share mode)，排他锁(for update)](https://segmentfault.com/a/1190000015210634)
 
 ### 锁的类型用过哪些
 
