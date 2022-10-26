@@ -501,15 +501,13 @@ undo log 叫做回滚日志，用于记录数据被修改前的信息。正好�
 
 #### MVCC多版本并发控制
 
+[MVCC基本原理](https://www.cnblogs.com/chinesern/p/7592537.html)
+
 ```mysql
 MVCC (MultiVersion Concurrency Control) 叫做多版本并发控制。一般情况下，事务性储存引擎不是只使用表锁，行加锁的处理数据，而是结合了MVCC机制，以处理更多的并发问题。Mvcc处理高并发能力最强，但系统开销比较大（较表锁、行级锁），这是最求高并发付出的代价。
 ```
 
-### innoDB支持事务，他为什么支持事务？MYSQL是如何保证的？
-
 ### 这个隔离级别是如何实现的？
-
-### mysql如何实现事务的？
 
 ### 如果实现分布式事务？
 
@@ -574,7 +572,6 @@ f、仅缓存索引
 4、archive  
 被设计用来存储企业中的大量流水数据的存储引擎，使用zlib无损数据压缩，适合做日志记录，用户行为分析
 
-
 ```
 
 ## Mysql相关锁
@@ -602,3 +599,9 @@ f、仅缓存索引
 ## 知道mysqlinnodb是什么数据结构吗？
 
 ## 数据库加密算法是怎么设计的？设计这种东西通用规范是怎么设计的？
+
+## 日志
+
+[mysql日志](https://www.cnblogs.com/MrYuChen-Blog/p/15692854.html)
+
+[mysql常用命令&架构&引擎](https://www.cnblogs.com/MrYuChen-Blog/p/15649937.html)
