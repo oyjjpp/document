@@ -248,6 +248,8 @@ ALTER TABLE TableName ADD INDEX IndexName(`字段名`(length));
 
 ## 性能
 
+[MySQL Explain详解](https://zhuanlan.zhihu.com/p/409658674)
+
 ### explain字段含义
 
 ### sql查询性能瓶颈处理方式
@@ -575,6 +577,9 @@ f、仅缓存索引
 ```
 
 ## Mysql相关锁
+
+[MySQL锁总结](https://zhuanlan.zhihu.com/p/29150809)  
+[全面了解mysql锁机制（InnoDB）与问题排查](https://juejin.cn/post/6844903668571963406)
 
 ### 锁的类型用过哪些
 
