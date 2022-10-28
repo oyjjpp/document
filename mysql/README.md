@@ -270,6 +270,17 @@ ALTER TABLE TableName ADD INDEX IndexName(`字段名`(length));
 
 ### mysql索引慢分析：线上开启slowlog，提取慢查询，然后仔细分析explain中tye字段以及extra字段，发生的具体场景及mysql是怎么做的
 
+### 关心过业务系统里面的sql耗时吗?统计过慢查询吗?对慢查询都怎么优化过?
+
+```mysql
+慢查询的优化首先要搞明白慢的原因是什么?
+是查询条件没有命中索引?
+是load了不需要的数据列?还是数据量太大?
+1、首先分析语句,看看是否load了额外的数据,可能是查询了多余的行并且抛弃掉了,可能是加载了许多结果中并不需要的列,对语句进行分析以及重写.
+2、分析语句的执行计划,然后获得其使用索引的情况,之后修改语句或者修改索引,使得语句可以尽可能的命中索引.
+3、如果对语句的优化已经无法进行,可以考虑表中的数据量是否太大,如果是的话可以进行横向或者纵向的分表
+```
+
 ## 事务
 
 [mysql 事务](https://www.cnblogs.com/MrYuChen-Blog/p/15684602.html)
@@ -514,6 +525,9 @@ MVCC (MultiVersion Concurrency Control) 叫做多版本并发控制。一般情�
 ### 如果实现分布式事务？
 
 ## 分库分表
+
+- [MySQL 分库分表方案，总结的非常好！](https://mp.weixin.qq.com/s?__biz=MzI0MDQ4MTM5NQ==&mid=2247485778&idx=1&sn=4297eaea0092de38fc2624a605d8afbe&chksm=e91b6c4ede6ce558ec7fc2060ed9f0a53887324d07db39e5dbad351ab041bb1f25a06ab6a217#rd)
+- [不用找了，大厂在用的分库分表方案，都在这里！](https://mp.weixin.qq.com/s?__biz=MzU0OTk3ODQ3Ng==&mid=2247486543&idx=1&sn=81020eac4b50d304714bd0771eda0ec3&chksm=fba6e44cccd16d5ad79ff53b927d08a369dcac2581352182f5f8308c05d22aeedcea7f7b489e&mpshare=1&scene=1&srcid=1126jU1XyilcWKaMcFgxoo8z&sharer_sharetime=1587024711007&sharer_shareid=fd40fc2b6520e68209b1c7b9e931bf3f&key=6b57fd689c726bc53bb53f0a278075aff08978b7b0eaf2b79d737d76d16999ecd746ab9a689584c31d38033cb9a887d296520adbad70604fec50dda2f2a8c80a53f229544761aeadbba67c097fad4623&ascene=1&uin=NjA0OTg5ODgy&devicetype=Windows+10+x64&version=62090070&lang=zh_CN&exportkey=ATq/fVNRNNP6G3tKuwEjIng=&pass_ticket=s4//QBQhcvXrz5SoiJW/I2Z+0SbKpVxFNxlFDrwIBMSljCArrd91FPFPxUIL8PNH)
 
 ### 分库分表查询方式，数据库分库分表，什么时候分库什么时候分表
 
