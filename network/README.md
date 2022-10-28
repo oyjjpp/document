@@ -21,14 +21,15 @@
 
 ![image](./image/domain-name-resolution.gif)
 
-1) 客户端通过浏览器访问域名为 www.baidu.com (<http://www.baidu.com>) 的网站，发起查询该域名的IP地址的DNS请求。该请求发送到了本地DNS服务器上。本地DNS服务器会首先查询它的缓存记录，如果缓存中有此条记录，就可以直接返回结果。如果没有，本地DNS服务器还要向DNS根服务器进行查询。  
-2) 本地DNS服务器向根服务器发送DNS请求，请求域名为 www.baidu.com (<http://www.baidu.com>)的IP地址。  
-3) 根服务器经过查询，没有记录该域名及IP地址的对应关系。但是会告诉本地DNS服务器，可以到域名服务器上继续查询，并给出域名服务器的地址（.com 服务器）。  
-4) 本地 DNS 服务器向 .com 服务器发送 DNS 请求，请求域名www.baidu.com (<http://www.baidu.com>) 的 IP 地址。  
-5) .com 服务器收到请求后，不会直接返回域名和IP地址的对应关系，而是告诉本地 DNS 服务器，该域名可以在 baidu.com 域名服务器上进行解析获取 IP 地址，并告诉 baidu.com 域名服务器的地址。  
-6) 本地 DNS 服务器向 baidu.com 域名服务器发送 DNS 请求，请求域名 www.baidu.com (<http://www.baidu.com>) 的 IP 地址。  
-7) baidu.com 服务器收到请求后，在自己的缓存表中发现了该域名和 IP 地址的对应关系，并将IP地址返回给本地 DNS 服务器。  
-8) 本地 DNS 服务器将获取到与域名对应的 IP 地址返回给客户端，并且将域名和 IP 地址的对应关系保存在缓存中，以备下次别的用户查询时使用。
+- 1) 客户端通过浏览器访问域名为 www.baidu.com (<http://www.baidu.com>) 的网站，发起查询该域名的IP地址的DNS请求。该请求发送到了本地DNS服务器上。本地DNS服务器会首先查询它的缓存记录，如果缓存中有此条记录，就可以直接返回结果。如果没有，本地DNS服务器还要向DNS根服务器进行查询。  
+- 2) 本地DNS服务器向根服务器发送DNS请求，请求域名为 www.baidu.com (<http://www.baidu.com>)的IP地址。  
+- 3) 根服务器经过查询，没有记录该域名及IP地址的对应关系。但是会告诉本地DNS服务器，可以到域名服务器上继续查询，并给出域名服务器的地址（.com 服务器）。  
+
+- 4) 本地 DNS 服务器向 .com 服务器发送 DNS 请求，请求域名www.baidu.com (<http://www.baidu.com>) 的 IP 地址。  
+- 5) .com 服务器收到请求后，不会直接返回域名和IP地址的对应关系，而是告诉本地 DNS 服务器，该域名可以在 baidu.com 域名服务器上进行解析获取 IP 地址，并告诉 baidu.com 域名服务器的地址。  
+- 6) 本地 DNS 服务器向 baidu.com 域名服务器发送 DNS 请求，请求域名 www.baidu.com (<http://www.baidu.com>) 的 IP 地址。  
+- 7) baidu.com 服务器收到请求后，在自己的缓存表中发现了该域名和 IP 地址的对应关系，并将IP地址返回给本地 DNS 服务器。  
+- 8) 本地 DNS 服务器将获取到与域名对应的 IP 地址返回给客户端，并且将域名和 IP 地址的对应关系保存在缓存中，以备下次别的用户查询时使用。
 
 ## 描述session和cookie，cookie是怎么传输的
 
@@ -73,3 +74,71 @@ cookie和session都是用来跟踪浏览器用户身份的会话方式。
 ## 网络安全
 
 ## osit层
+
+## http和tcp有什么区别
+
+## http和https的区别
+
+## http和http2区别
+
+## 用netstat看tcp连接的时候有关注过time_wait和close_wait吗？
+
+## tcp如何保证稳定性
+
+## https的连接过程
+
+## io多路复用，select\poll\epoll的实现和区别
+
+## 三次握手和四次挥手
+
+## 长连接和短链接(怎么实现的、区别以及应用场景)
+
+## 网络七层模型和五层模型
+
+## 输入URL发生的整个网络过程
+
+## TCP流量控制、拥塞控制
+
+## TCP半连接队列
+
+## TCP半关闭状态
+
+## TCP滑动窗口
+
+## tcp与udp区别，udp优点，适用场景
+
+## tcp握手，为什么是四次挥手
+
+## 挥手time_wait阶段是什么时候
+
+## time_wait时间太长会怎样？
+
+## http restful的定义规范
+
+## 常见的http状态码
+
+## tcp和udp有什么区别，在基础时间和传输层有什么区别
+
+## tcp三次握手四次挥手
+
+## tcp和udp区别
+
+## 对连接池有了解吗？
+
+## 信令用wss还是ws？
+
+## wss是基于tcp的，tcp有个半连接队列，有没有遇到发了信令但是服务器没收到的情况？
+
+## ntp协议
+
+## 时间同步问题？
+
+## tcp如何实现稳定性
+
+## https如何实现的，证书是怎么获取的？
+
+## 服务器上有大量time_wait状态，如何分析一下为什么会这样？
+
+## 说下websocket是哪一层协议？
+
+## 常见http状态码
