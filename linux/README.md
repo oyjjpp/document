@@ -102,20 +102,19 @@ fork的实现分为以下两步
 
 ## 线程和协程的区别，内核态和用户态
 
+[用户态与内核态 -- 帮你解惑，直达本质](https://zhuanlan.zhihu.com/p/564044252)
+
 ![image](./image/kernel.jpeg)
 
-[用户态与内核态 -- 帮你解惑，直达本质
-](https://zhuanlan.zhihu.com/p/564044252)
-
 ## 一个进程能创建的线程数量受到哪些制约？
+
+[被问懵了：一个进程最多可以创建多少个线程？](https://www.cnblogs.com/xiaolincoding/p/15013929.html)
 
 ```linux
 进程的虚拟内存空间上限:因为创建一个线程，操作系统需要为其分配一个栈空间，如果线程数量越多，所需的栈空间就要越大，那么虚拟内存就会占用的越多。
 
 系统参数限制:虽然 Linux 并没有内核参数来控制单个进程创建的最大线程个数，但是有系统级别的参数来控制整个系统的最大线程个数。
 ```
-
-[被问懵了：一个进程最多可以创建多少个线程？](https://www.cnblogs.com/xiaolincoding/p/15013929.html)
 
 ## linux常用操作
 
@@ -252,8 +251,7 @@ sleep()在OS中的实现的大概流程：
 
 ## linux文件系统
 
-[深入理解 ext4 等 Linux 文件系统
-](https://zhuanlan.zhihu.com/p/44267768)
+[深入理解 ext4 等 Linux 文件系统](https://zhuanlan.zhihu.com/p/44267768)
 
 ## 进程挂起，阻塞和睡眠的区别
 
