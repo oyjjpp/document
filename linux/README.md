@@ -332,17 +332,41 @@ Epoll 在 fork 之后创建仍然存在惊群效应，Nginx 使用自己实现�
 ## 物理CPU
 
 ```linux
-物理CPU就是计算机上实际配置的CPU个数。在linux上可以打开cat /proc/cpuinfo 来查看，其中的physical id就是每个物理CPU的ID，你能找到几个physical id就代表你的计算机实际有几个CPU。在linux下可以通过指令 grep ‘physical id’ /proc/cpuinfo | sort -u | wc -l 来查看你的物理CPU个数
+物理CPU就是计算机上实际配置的CPU个数。
+在linux上可以打开cat /proc/cpuinfo 来查看，其中的physical id就是每个物理CPU的ID，
+你能找到几个physical id就代表你的计算机实际有几个CPU。
+
+在linux下可以通过指令 grep 'physical id' /proc/cpuinfo | sort -u | wc -l 来查看你的物理CPU个数
 ```
 
-## cpu核数  
+## cpu核数
 
 ```linux
-核数就是指CPU上集中的处理数据的cpu核心个数，单核指cpu核心数一个，双核则指的是两个。通常每个CPU下的核数都是固定的，比如你的计算机有两个物理CPU，每个CPU是双核，那么计算机就是四核的。linux的cpu核心总数也可以在/proc/cpuinfo里面通过指令cat /proc/cpuinfo查看的到，其中的core id指的是每个物理CPU下的cpu核的id，能找到几个core id就代表你的计算机有几个核心。也可以使用指令cat /proc/cpuinfo | grep “cpu cores” | wc -l来统计cpu的核心总数。
+核数就是指CPU上集中的处理数据的cpu核心个数，单核指cpu核心数一个，双核则指的是两个。
+通常每个CPU下的核数都是固定的，比如你的计算机有两个物理CPU，每个CPU是双核，那么计算机就是四核的。
+linux的cpu核心总数也可以在/proc/cpuinfo里面通过指令cat /proc/cpuinfo查看的到，
+其中的core id指的是每个物理CPU下的cpu核的id，能找到几个core id就代表你的计算机有几个核心。
+
+可以使用指令 grep 'cpu cores' /proc/cpuinfo | wc -l 来统计cpu的核心总数。
 ```
 
-## 逻辑CPU  
+## 逻辑CPU
 
 ```linux
-操作系统可以使用逻辑CPU来模拟出真实CPU的效果。在之前没有多核处理器的时候，一个CPU只有一个核，而现在有了多核技术，其效果就好像把多个CPU集中在一个CPU上。当计算机没有开启超线程时，逻辑CPU的个数就是计算机的核数。而当超线程开启后，逻辑CPU的个数是核数的两倍。实际上逻辑CPU的数量就是平时称呼的几核几线程中的线程数量，在linux的cpuinfo中逻辑CPU数就是processor的数量。可以使用指令cat /proc/cpuinfo | grep “processor” | wc -l来查看逻辑CPU数。 知道上面这些，常说的几核几线程就好理解了。假设计算机有一个物理CPU，是双核的，支持超线程。那么这台计算机就是双核四线程的。  所以两路（两路指的是有两个物理CPU）四核超线程就有2*4*2=16个逻辑CPU。有人也把它称之为16核，实际上在linux的/proc/cpuinfo中查看只有8核。 既然计算机多核与超线程模拟相关，所以实际上计算机的核数翻倍并不意味着性能的翻倍，也不意味着核数越多计算机性能会越来越好，因为超线程只是充分利用了CPU的空闲资源，实际上在应用中基于很多原因，CPU的执行单元都没有被充分使用。
+操作系统可以使用逻辑CPU来模拟出真实CPU的效果。在之前没有多核处理器的时候，一个CPU只有一个核，
+而现在有了多核技术，其效果就好像把多个CPU集中在一个CPU上。
+
+当计算机没有开启超线程时，逻辑CPU的个数就是计算机的核数。而当超线程开启后，逻辑CPU的个数是核数的两倍。
+
+实际上逻辑CPU的数量就是平时称呼的几核几线程中的线程数量，在linux的cpuinfo中逻辑CPU数就是processor的数量。
+可以使用指令 grep 'processor' /proc/cpuinfo | wc -l 来查看逻辑CPU数。
+
+知道上面这些，常说的几核几线程就好理解了。
+假设计算机有一个物理CPU，是双核的，支持超线程。那么这台计算机就是双核四线程的。  
+所以两路（两路指的是有两个物理CPU）四核超线程就有2*4*2=16个逻辑CPU。
+有人也把它称之为16核，实际上在linux的/proc/cpuinfo中查看只有8核。
+
+既然计算机多核与超线程模拟相关，所以实际上计算机的核数翻倍并不意味着性能的翻倍，
+也不意味着核数越多计算机性能会越来越好，因为超线程只是充分利用了CPU的空闲资源，
+实际上在应用中基于很多原因，CPU的执行单元都没有被充分使用。
 ```
