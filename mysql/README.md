@@ -661,6 +661,38 @@ MyISAM表的读操作与写操作之间，以及写操作之间是串行的。
 MyISAM 在执行查询语句（SELECT）前，会自动给涉及的表加读锁；
 在执行更新操作（UPDATE、DELETE、INSERT 等）前，会自动给涉及的表加写锁；
 这个过程并不需要用户干预，因此用户一般不需要直接用 LOCK TABLE命令给MyISAM表显式加锁。
+
+
+在自动加锁的情况下，MyISAM总是一次获得SQL语句所需要的全部锁，这也正是 MyISAM 表不会出现死锁（Deadlock Free）的原因。
+
+MyISAM存储引擎支持并发插入，以减少给定表的读和写操作之间的争用：
+
+如果MyISAM表在数据文件中间没有空闲块，则行始终插入数据文件的末尾。在这种情况下，你可以自
+由混合并发使用MyISAM表的INSERT和SELECT语句而不需要加锁——你可以在其他线程进行读操作的时候，同时将行插入到MyISAM表中。
+
+如果文件中间有空闲快，则并发插入会被禁用，但是当所有空闲块都填充有新数据时，它又会自动重
+新启用；要控制此行为，可以使用MySQL的concurrent_insert系统变量。
+
+如果你使用LOCK TABLES显式获取表锁，则可以请求READ LOCAL锁而不是READ锁，以便在锁定表时，其他会话可以使用并发插入。
+```
+
+- 当concurrent_insert设置为0时，不允许并发插入。
+- 当concurrent_insert设置为1时，如果MyISAM表中没有空洞（即表的中间没有被删除的行），MyISAM允许在一个线程读表的同时，另一个线程从表尾插入记录。这也是MySQL的默认设置。
+- 当concurrent_insert设置为2时，无论MyISAM表中有没有空洞，都允许在表尾并发插入记录。
+
+### 查询表级锁争用情况
+
+```mysql
+通过检查 table_locks_waited 和 table_locks_immediate 状态变量来分析系统上的表锁的争夺，
+如果 Table_locks_waited 的值比较高，则说明存在着较严重的表级锁争用情况：
+
+mysql> SHOW STATUS LIKE 'Table%';
++----------------------------+----------+
+| Variable_name              | Value    |
++----------------------------+----------+
+| Table_locks_immediate      | 55320843 |
+| Table_locks_waited         | 0        |
++----------------------------+----------+
 ```
 
 ### 锁的类型用过哪些
