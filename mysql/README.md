@@ -528,6 +528,7 @@ MVCC (MultiVersion Concurrency Control) 叫做多版本并发控制。一般情�
 
 - [MySQL 分库分表方案，总结的非常好！](https://mp.weixin.qq.com/s?__biz=MzI0MDQ4MTM5NQ==&mid=2247485778&idx=1&sn=4297eaea0092de38fc2624a605d8afbe&chksm=e91b6c4ede6ce558ec7fc2060ed9f0a53887324d07db39e5dbad351ab041bb1f25a06ab6a217#rd)
 - [不用找了，大厂在用的分库分表方案，都在这里！](https://mp.weixin.qq.com/s?__biz=MzU0OTk3ODQ3Ng==&mid=2247486543&idx=1&sn=81020eac4b50d304714bd0771eda0ec3&chksm=fba6e44cccd16d5ad79ff53b927d08a369dcac2581352182f5f8308c05d22aeedcea7f7b489e)
+- [一口气说出9种分布式ID生成方式，阿里面试官都懵了](https://zhuanlan.zhihu.com/p/152179727)
 
 ### 数据库瓶颈
 
@@ -726,8 +727,6 @@ MVCC (MultiVersion Concurrency Control) 叫做多版本并发控制。一般情�
 ```
 
 ![image](./image/640.jpg)
-
-### mysql分布式id
 
 ### 分库之后唯一性如何保证
 
