@@ -83,6 +83,12 @@ DNS在区域传输的时候使用TCP协议，为了保证数据传输时的准�
 
 [IO 多路复用是什么意思？](https://www.zhihu.com/question/32163005/answer/1802684879)
 
+## HTTP
+
+### HTTP 常见问题
+
+[HTTP 常见面试题](https://xiaolincoding.com/network/2_http/http_interview.html)
+
 ## 网络协议
 
 ## 网络安全
