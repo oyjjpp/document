@@ -81,6 +81,8 @@ DNS在区域传输的时候使用TCP协议，为了保证数据传输时的准�
 
 ## io多路复用，select\poll\epoll的实现和区别
 
+[IO 多路复用是什么意思？](https://www.zhihu.com/question/32163005/answer/1802684879)
+
 ## 网络协议
 
 ## 网络安全
