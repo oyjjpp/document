@@ -92,9 +92,13 @@ HTTP 是超文本传输协议，也就是HyperText Transfer Protocol。
 ### HTTP 常见问题
 
 [HTTP 常见面试题](https://xiaolincoding.com/network/2_http/http_interview.html)
+
 ![image](./image/202211041720.png)
 
-**HTTP 常见的状态码有哪些？**
+#### HTTP基本概念
+
+**HTTP 常见的状态码有哪些：**
+
 ![常见的状态码](./image/202211041755.jpeg)
 
 |状态码|以2XX开头的都表示请求成功响应|
@@ -124,6 +128,57 @@ HTTP 是超文本传输协议，也就是HyperText Transfer Protocol。
 |503 | 该状态码表明服务器暂时处于超负荷或者正在进行停机维护，无法处理请求
 |504 | 代表服务端执行超时
 |505 |
+
+**HTTP 常见的请求头响应头：**
+![image](./image/202211050918.jpeg)
+| 实体表头 | |
+|-|-|
+| Content-Length | 实体主体的大小，已字节为单位
+| Content-Language | 可以接受的语言 zh-CN,zh
+| Content-Encodeing | 指示对实体应用了何种编码gzip、compress、deflate、identity
+| Content-Type | 实例主体的媒体类型
+| Content-MD5 | 实体主体的报文摘要
+| Content-Location | 替代对应资源的URI
+| Content-Range  | 实体主体的位置范围
+| Expires | 实体主体过期的日期时间
+| Last-Modified | 资源最后修改日期时间
+
+| 请求标头 | |
+|-|-|
+| Accept | 接受请求HTTP标头会通告客户端期能够理解的MIME类型
+| Accept-Charset | 规定夫妻处理表单数据所接受的字符集Accept-Language能够处理的自然语言；en-US,en,q=0.5
+| Host | 指定服务器的域名
+| Referer | 请求的来源
+| Upgrade-Insecure-Requests | 表示客户端优先选择加密机带有身份验证的响应
+| If-Modified-Since | 条件请求 200：只有在给定日期的最后一次修改资源后，服务器才会以200状态发送会请求的资源 304如果请求从开始以来没有被修改过，响应会返回304并且没有额任何响应体
+
+| 响应标头 | |
+|-|-|
+| Access-Control-Allow-Origin | 设置指定资源进行访问
+| Keep-Alive[逐跳首部] | 表示Connection非持续连接的存活时间timeout=5,max=997（限制最大的超时时间是5S和最大的连接请求997）
+| Server | 包含原始服务器用来处理请求的软件信息
+| Set-Cookie |
+| Transfer-Encoding | 规定了传输报文主体是采用的编码方式
+| Accept-Ranges | 是否接受字节范围要求
+| Age | 推算资源创建经过时间
+| Etag | 资源的匹配信息
+| Location | 令客户端重定向至指定URI
+| Proxy-Authenticate | 代理服务器对客户端的认证信息
+| Retry-After | 再次发送请求的实际要求
+
+#### GET和POST
+
+**GET:**
+
+```network
+根据 RFC 规范，GET 的语义是从服务器获取指定的资源，这个资源可以是静态的文本、页面、图片视频等。GET 请求的参数位置一般是写在 URL 中，URL 规定只能支持 ASCII，所以 GET 请求的参数只允许 ASCII 字符 ，而且浏览器会对 URL 的长度有限制（HTTP协议本身对 URL长度并没有做任何规定）。
+```
+
+**POST:**
+
+```network
+根据 RFC 规范，POST 的语义是根据请求负荷（报文body）对指定的资源做出处理，具体的处理方式视资源类型而不同。POST 请求携带数据的位置一般是写在报文 body 中， body 中的数据可以是任意格式的数据，只要客户端与服务端协商好即可，而且浏览器不会对 body 大小做限制。
+```
 
 ## 网络协议
 
