@@ -12,15 +12,21 @@
 
 [Golang数据结构](./struct.md)
 
-### Go中对nil的Slice和空的Slice的处理是一致的吗？
-
 ### 切片的底层实现说一下？
+
+### Go中对nil的Slice和空的Slice的处理是一致的吗？
 
 nil slice和empty slice是不一致的
 
-### 切片的底层实现
+### slice，len，cap，共享，扩容
 
 ### slice和array区别
+
+### 创建一个数组底层扩容
+
+### 如何把数组转化成一个切片
+
+### 数组和切片的区别
 
 ### map和sync.map是有什么区别？看过源码吗，可以介绍一下吗？
 
@@ -28,29 +34,15 @@ nil slice和empty slice是不一致的
 
 ### map取一个key，然后修改这个值，原map数据的值会不会变化
 
-### go struct能不能比较
-
-### context包的用途
-
-### slice，len，cap，共享，扩容
-
 ### map如何顺序读取
 
-### go切片是如何实现的
+### struct能不能比较
 
 ### go里面interface是什么概念
-
-### 创建一个数组底层扩容
 
 ### go什么场景使用接口
 
 ### 函数传递有什么区别
-
-### 切片底层的架构
-
-### 如何把数组转化成一个切片
-
-### 数组和切片的区别
 
 ### 相比于javac++interface有什么区别吗？
 
@@ -212,7 +204,60 @@ type Context interface {
 
 [Golang内存管理](./memory.md)
 
-### Go语言的逃逸分析和GC你了解吗？展开说一下GC的过程
+### 知道golang的内存逃逸吗？什么情况下会发生内存逃逸？
+
+golang程序变量会携带有一组校验数据，用来证明它的整个生命周期是否在运行时完全可知。如果变量通过了这些校验，它就可以在栈上分配。否则就说它 逃逸 了，必须在堆上分配。
+
+能引起变量逃逸到堆上的典型情况：
+
+- 在方法内把局部变量指针返回 局部变量原本应该在栈中分配，在栈中回收。但是由于返回时被外部引用，因此其生命周期大于栈，则溢出。
+- 发送指针或带有指针的值到 channel 中。 在编译时，是没有办法知道哪个 goroutine 会在 channel 上接收数据。所以编译器没法知道变量什么时候才会被释放。
+- 在一个切片上存储指针或带指针的值。 一个典型的例子就是 []*string 。这会导致切片的内容逃逸。尽管其后面的数组可能是在栈上分配的，但其引用的值一定是在堆上。
+- slice 的背后数组被重新分配了，因为 append 时可能会超出其容量( cap )。 slice 初始化的地方在编译时是可以知道的，它最开始会在栈上分配。- 如果切片背后的存储要基于运行时的数据进行扩充，就会在堆上分配。
+- 在 interface 类型上调用方法。 在 interface 类型上调用方法都是动态调度的 —— 方法的真正实现只能在运行时知道。想像一个 io.Reader 类型的变量 r , 调用 r.Read(b) 会使得 r 的值和切片b 的背后存储都逃逸掉，所以会在堆上分配。
+
+**案例：**
+通过一个例子加深理解，接下来尝试下怎么通过 go build -gcflags=-m 查看逃逸的情况。
+
+```golang
+
+type A struct {
+ s string
+}
+
+// 这是上面提到的 "在方法内把局部变量指针返回" 的情况
+func foo(s string) *A {
+ a := new(A)
+ a.s = s
+ return a //返回局部变量a,在C语言中妥妥野指针，但在go则ok，但a会逃逸到堆
+}
+
+func main() {
+ a := foo("hello")
+ b := a.s + " world"
+ c := b + "!"
+ fmt.Println(c)
+}
+
+PS D:\project\algorithm> go build -gcflags=-m main.go
+# command-line-arguments
+.\main.go:12:6: can inline foo
+.\main.go:19:10: inlining call to foo
+.\main.go:22:13: inlining call to fmt.Println
+.\main.go:12:10: leaking param: s
+.\main.go:13:10: new(A) escapes to heap
+.\main.go:19:10: new(A) does not escape
+.\main.go:20:11: a.s + " world" does not escape
+.\main.go:21:9: b + "!" escapes to heap
+.\main.go:22:13: ... argument does not escape
+.\main.go:22:13: c escapes to heap
+```
+
+- ./main.go:13:10: new(A) escapes to heap 说明 new(A) 逃逸了,符合上述提到的常见情况中的第一种。
+- ./main.go:20:11: main a.s + " world" does not escape 说明 b 变量没有逃逸，因为它只在方法内存在，会在方法结束时被回收。
+- ./main.go:21:9: b + "!" escapes to heap 说明 c 变量逃逸，通过fmt.Println(a ...interface{})打印的变量，都会发生逃逸
+
+### GC你了解吗？展开说一下GC的过程
 
 ### go内存操作也要处理IO，是如何处理的?
 
