@@ -229,6 +229,3 @@ go func(){
 
 [Golang 调度器 GMP 原理与调度全分析](https://learnku.com/articles/41728)  
 [调度器](https://draveness.me/golang/docs/part3-runtime/ch06-concurrency/golang-goroutine/)
-原文作者：Aceld  
-转自链接：<https://learnku.com/articles/41728>  
-版权声明：著作权归作者所有。商业转载请联系作者获得授权，非商业转载请保留以上作者信息和原文链接。  
