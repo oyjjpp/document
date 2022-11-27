@@ -351,9 +351,6 @@ M 与 P 的数量没有绝对关系，一个 M 阻塞，P 就会去创建或者�
 ## 内存管理
 
 [Golang内存管理](./memory.md)  
-[Go 垃圾回收（一）——为什么要学习 GC ?](https://zhuanlan.zhihu.com/p/101132283)  
-[Go内存分配那些事，就这么简单！](https://mp.weixin.qq.com/s/3gGbJaeuvx4klqcv34hmmw)  
-[Go垃圾回收 1：历史和原理](https://lessisbetter.site/2019/10/20/go-gc-1-history-and-priciple/)
 
 ### 知道golang的内存逃逸吗？什么情况下会发生内存逃逸？
 
@@ -415,6 +412,11 @@ PS D:\project\algorithm> go build -gcflags=-m main.go
 ### 内存申请上有什么区别
 
 ## 垃圾回收
+
+[深入浅出垃圾回收（三）增量式 GC](https://liujiacai.net/blog/2018/08/04/incremental-gc/)  
+[Go 垃圾回收（一）——为什么要学习 GC ?](https://zhuanlan.zhihu.com/p/101132283)  
+[Go内存分配那些事，就这么简单！](https://mp.weixin.qq.com/s/3gGbJaeuvx4klqcv34hmmw)  
+[Go垃圾回收 1：历史和原理](https://lessisbetter.site/2019/10/20/go-gc-1-history-and-priciple/)
 
 ### GC 不回收什么？
 
@@ -485,6 +487,34 @@ Write Barrier 主要做这样一件事情，修改原先的写逻辑，然后在
 #### 阶段四：Sweeping 清理（Concurrent）
 
 最后一个阶段就是垃圾清理阶段，这个过程是并发进行的。清扫的开销会增加到分配堆内存的过程中，所以这个时间也是无感知不会与垃圾回收的延迟相关联。
+
+### 触发GC时机
+
+- 在分配内存时，会判断当前的Heap内存分配量是否达到了触发一轮GC的阈值（每轮GC完成后，该阈值会被动态设置），如果超过阈值，则启动一轮GC。
+
+- 调用runtime.GC()强制启动一轮GC。
+
+- sysmon是运行时的守护进程，当超过 forcegcperiod (2分钟)没有运行GC会启动一轮GC。
+
+### GC调节参数
+
+Go垃圾回收不像Java垃圾回收那样，有很多参数可供调节，Go为了保证使用GC的简洁性，只提供了一个参数GOGC。
+
+GOGC代表了占用中的内存增长比率，达到该比率时应当触发1次GC，该参数可以通过环境变量设置。
+
+它的单位是百分比，取值范围并不是 [0, 100]，可以是1000，甚至2000，2000时代表2000%，即20倍。
+
+```golang
+假如当前heap占用内存为4MB，GOGC = 75，
+
+4 * (1+75%) = 7MB
+等heap占用内存大小达到7MB时会触发1轮GC。
+```
+
+**GOGC还有2个特殊值：**  
+
+- "off" : 代表关闭GC
+- 0 : 代表持续进行垃圾回收，只用于调试
 
 ## 常用框架
 
