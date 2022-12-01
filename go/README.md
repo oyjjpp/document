@@ -14,23 +14,71 @@
 
 ### 切片的底层实现说一下？
 
+```golang
+type SliceHeader struct {
+ Data uintptr
+ Len  int
+ Cap  int
+}
+```
+
+- Data 是指向数组的指针;  
+- Len 是当前切片的长度；  
+- Cap 是当前切片的容量，即 Data 数组的大小。
+
 ### Go中对nil的Slice和空的Slice的处理是一致的吗？
 
 nil slice和empty slice是不一致的
 
+通常错误的用法，会报数组越界的错误，因为只是声明了slice，却没有给实例化的对象。
+
+```golang
+var slice []int
+slice[1] = 0
+```
+
+此时slice的值是nil，这种情况可以用于需要返回slice的函数，当函数出现异常的时候，保证函数依然会有nil的返回值。
+
+empty slice 是指slice不为nil，但是slice没有值，slice的底层的空间是空的，此时的定义如下：
+
+```golang
+slice := make([]int,0）
+slice := []int{}
+```
+
+当我们查询或者处理一个空的列表的时候，这非常有用，它会告诉我们返回的是一个列表，但是列表内没有任何值。
+
 ### slice，len，cap，共享，扩容
+
+- 如果期望容量大于当前容量的两倍就会使用期望容量；
+- 如果当前切片的长度小于 1024 就会将容量翻倍；
+- 如果当前切片的长度大于 1024 就会每次增加 25% 的容量，直到新容量大于期望容量；
 
 ### slice和array区别
 
-### 创建一个数组底层扩容
+- 数组长度不能改变，初始化后长度就是固定的；切片的长度是不固定的，可以追加元素，在追加时可能使切片的容量增大。
+- 结构不同，数组是一串固定数据，切片描述的是截取数组的一部分数据，从概念上说是一个结构体。
+- 初始化方式不同，在声明时的时候：声明数组时，方括号内写明了数组的长度或使用...自动计算长度，而声明slice时，方括号内没有任何字符。
+- unsafe.sizeof的取值不同，unsafe.sizeof(slice)返回的大小是切片的描述符，不管slice里的元素有多少，返回的数据都是24字节。unsafe.sizeof(arr)的值是在随着arr的元素的个数的增加而增加，是数组所存储的数据内存的大小。
 
 ### 如何把数组转化成一个切片
 
-### 数组和切片的区别
+### make一个slice参数怎么写？
+
+```golang
+data := make([]int, 5, 10）
+```
+
+当前切片长度=len=5  
+当前切片容量=cap=10  
+
+### map会遇到一些并发安全的问题，为什么就并发不安全了？
 
 ### map和sync.map是有什么区别？看过源码吗，可以介绍一下吗？
 
 ### map里面解决hash冲突怎么做的，冲突了元素放在头还是尾
+
+Go 语言中使用拉链法来解决哈希碰撞的问题实现了哈希表，访问、写入和删除等操作都在编译期间被转换成了对应的运行时函数或者方法。
 
 ### map取一个key，然后修改这个值，原map数据的值会不会变化
 
@@ -46,13 +94,7 @@ nil slice和empty slice是不一致的
 
 ### 相比于javac++interface有什么区别吗？
 
-### make一个slice参数怎么写？
-
-### map会遇到一些并发安全的问题，为什么就并发不安全了？
-
 ### 为什么给变量一个基础类型没有并发安全问题？
-
-### 数组和切片的关系和区别
 
 ### 结构体传递场景
 
@@ -74,18 +116,93 @@ fatal error: concurrent map read and map write
 
 ### defer是啥？怎么用的？底层原理是啥？
 
+#### defer底层原理
+
+**编译期：**
+
+- 将 defer 关键字被转换 runtime.deferproc；  
+- 在调用 defer 关键字的函数返回之前插入 runtime.deferreturn；
+
+**运行时：**
+
+- runtime.deferproc 会将一个新的 runtime._defer 结构体追加到当前 Goroutine 的链表头；  
+- runtime.deferreturn 会从 Goroutine 的链表中取出 runtime._defer 结构并依次执行；
+
 #### 使用defer的现象
 
-- defer 关键字的调用时机以及多次调用 defer 时执行顺序是如何确定的；  
-- defer 关键字使用传值的方式传递参数时会进行预计算，导致不符合预期的结果；  
+**defer 关键字的调用时机以及多次调用 defer 时执行顺序是如何确定的；**  
+
+- 后调用的 defer 函数会被追加到 Goroutine _defer 链表的最前面；  
+- 运行 runtime._defer 时是从前到后依次执行；
+
+**defer 关键字使用传值的方式传递参数时会进行预计算，导致不符合预期的结果；**  
+
+- 调用 runtime.deferproc 函数创建新的延迟调用时就会立刻拷贝函数的参数，函数的参数不会等到真正执行时计算；
+
+**return 不是原子操作：**
+
+- 执行过程是: 保存返回值(若有)–>执行 defer（若有）–>执行 ret 跳转，申请资源后立即使用 defer 关闭资源是好习惯。
 
 ### defer用的多吗？有哪些应用
 
+- 资源释放（数据库资源、锁资源）  
+- 连接关闭（TCP、文件句柄）  
+- 捕获panic， 进行 recover 防止程序崩溃
+
+### panic 和 recover
+
+- panic 能够改变程序的控制流，调用 panic 后会立刻停止执行当前函数的剩余代码，并在当前 Goroutine 中递归执行调用方的 defer；  
+- recover 可以中止 panic 造成的程序崩溃。它是一个只能在 defer 中发挥作用的函数，在其他作用域中调用不会发挥作用；  
+
+#### panic 和 recover使用的现象
+
+- panic 只会触发当前 Goroutine 的 defer；  
+- recover 只有在 defer 中调用才会生效；  
+- panic 允许在 defer 中嵌套多次调用；  
+
+![image](./image/20221130075701001.png)
+
+### go如何避免panic
+
+通过defer 函数中调用recover() 恢复崩溃情况
+
 ### 异常捕获是如何做的？
+
+- 逐级返回error等待顶成捕获
+- 通过recover在defer捕获
 
 ### select可以用于什么
 
-### go如何避免panic
+[select](https://draveness.me/golang/docs/part2-foundation/ch05-keyword/golang-select/)
+
+select 能够让 Goroutine 同时等待多个 Channel 可读或者可写，在多个文件或者 Channel状态改变之前，select 会一直阻塞当前线程或者Goroutine。
+
+- select 能在 Channel 上进行非阻塞的收发操作；
+- select 在遇到多个 Channel 同时响应时，会随机执行一种情况；
+
+### make和new
+
+- make 的作用是初始化内置的数据结构，我们常用到的切片、哈希表和 Channel；
+- new 的作用是根据传入的类型分配一片内存空间并返回指向这片内存空间的指针；
+
+```golang
+slice := make([]int, 0, 100)
+hash := make(map[int]bool, 10)
+ch := make(chan int, 5)
+```
+
+slice 是一个包含 data、cap 和 len 的结构体 reflect.SliceHeader；  
+hash 是一个指向 runtime.hmap 结构体的指针；  
+ch 是一个指向 runtime.hchan 结构体的指针；  
+
+```golang
+i := new(int)
+
+var v int
+i := &v
+```
+
+上述代码片段中的两种不同初始化方法是等价的，它们都会创建一个指向 int 零值的指针。
 
 ### append时的过程
 

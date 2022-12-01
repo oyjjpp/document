@@ -1120,6 +1120,8 @@ InnoDB目前处理死锁的方法是，将持有最少行级排他锁的事务�
 
 ## 主从
 
+[6 种 MySQL 数据库平滑扩容方案剖析](https://mp.weixin.qq.com/s/k-WnKce2o92h1-RRvQolJw)
+
 ### mysql主从同步过程了解吗？
 
 ### 复制原理及流程
