@@ -63,6 +63,11 @@ slice := []int{}
 
 ### 如何把数组转化成一个切片
 
+```golang
+arrData := [10]int{}
+sliceData := arrData[0:3]
+```
+
 ### make一个slice参数怎么写？
 
 ```golang
@@ -74,35 +79,80 @@ data := make([]int, 5, 10）
 
 ### map会遇到一些并发安全的问题，为什么就并发不安全了？
 
-### map和sync.map是有什么区别？看过源码吗，可以介绍一下吗？
+go 语言的设计者认为，在大部分场景中，对 map 的操作都非线程安全的；**我们不可能为了那小部分的需求，而牺牲大部分人的性能。**  
+
+```golang
+func main() {
+    s := make(map[int]int)
+    // 启 100 个异步线程去写 map
+    for i := 0; i < 100; i++ {
+        go func(i int) {
+            s[i] = i
+        }(i)
+    }
+    // 启 100 个一步线程去读 map
+    for i := 0; i < 100; i++ {
+        go func(i int) {
+            fmt.Printf("map 第 %d 个元素值是 %d", i, s[i])
+        }(i)
+    }
+    // 睡眠 3 秒钟，方便前面的协程打印
+    time.Sleep(3 * time.Second)
+}
+```
+
+因为是异步协程，所以 map 同一时刻就可能被多个写的协程操作。  
+那么运行后就会报错：fatal error: concurrent map writes
+
+### map和sync.Map是有什么区别？看过源码吗，可以介绍一下吗？
+
+[一文解决Map并发问题](https://cloud.tencent.com/developer/article/1539049)
+
+#### sync.Map的特点
+
+```golang
+type Map struct {
+   mu Mutex
+   read atomic.Value // readOnly
+   dirty map[interface{}]*entry
+   misses int
+}
+```
+
+可以无锁访问read map，而且会优先操作read map，倘若只操作read map就可以满足要求，那就不用去操作write map(dirty)。
+
+**sync.Map 特点：**
+
+- 空间换时间，通过冗余的两个数据结构(read、dirty)，实现加锁对性能的影响。  
+- 使用只读数据(read)，避免读写冲突。  
+- 动态调整，miss次数多了之后，将dirty数据提升为read。  
+- double-checking。  
+- 延迟删除，删除一个键值只是打标记，只有在提升dirty的时候才清理删除的数据。  
+- 优先从read读取、更新、删除，因为对read的读取不需要锁。  
+
+**sync缺点：**
+如果是写多的场景，会导致 read map 缓存失效，需要加锁，冲突变多，性能急剧下降。
 
 ### map里面解决hash冲突怎么做的，冲突了元素放在头还是尾
 
-Go 语言中使用拉链法来解决哈希碰撞的问题实现了哈希表，访问、写入和删除等操作都在编译期间被转换成了对应的运行时函数或者方法。
+Go 语言中使用拉链法来解决哈希碰撞的问题实现了哈希表
+
+根据key定位到指定桶中，循环桶中的元素
+
+- 1、先定位如果tophash与桶中的top是否不相等 如果不相等则返回地址  
+- 2、如果与桶中tophash相等，则判断key是否相等，如果相等则返回地址  
+- 3、如果1/2 寻找后还没有合适地址，则去查找溢出桶，循环1/2  
+- 4、如果溢出桶也未寻找到，则需要扩容  
 
 ### map取一个key，然后修改这个值，原map数据的值会不会变化
 
+- 1、如果单独赋值，并且修改了原map的值时不会发生变化  
+- 2、如果将整个map赋值，在修改map，原来map的数据值会发生变化
+
 ### map如何顺序读取
 
-### struct能不能比较
-
-### go里面interface是什么概念
-
-### go什么场景使用接口
-
-### 函数传递有什么区别
-
-### 相比于javac++interface有什么区别吗？
-
-### 为什么给变量一个基础类型没有并发安全问题？
-
-### 结构体传递场景
-
-### string和byte数组有什么区别？
-
-### go结构体和结构体指针的区别
-
-### go深拷贝，什么时候需要深拷贝
+因为map通过rang遍历的时候加入了随机种子，所以遍历是无须的，  
+如果想通过顺序遍历可以将key放入到slice，通过遍历切片的形式去遍历map
 
 ### 并发读写map会发生什么？怎么避免?
 
@@ -111,6 +161,70 @@ fatal error: concurrent map read and map write
 
 1、在1.9之前可以定义一个结构体加上一把读写锁来解决并发安全问题；
 2、1.9之后官方在sync包定义了Map结构体，如果遇到并发问题，可以使用sync.Map解决。  
+
+### struct能不能比较
+
+[Go 结构体（struct）是否可以比较？](https://segmentfault.com/a/1190000040099215)  
+strruct 是否能比较需要看结构体的元素类型
+
+### go结构体和结构体指针的区别
+
+```golang
+type MyStruct struct {
+    Name string
+}
+
+func (s MyStruct) SetName1(name string) {
+    s.Name = name
+}
+
+func (s *MyStruct) SetName2(name string) {
+    s.Name = name
+}
+
+ func SetName1(s MyStruct, name string){
+    u.Name = name
+ }
+
+ func SetName2(s *MyStruct,name string){
+    u.Name = name
+ }
+```
+
+- 在使用上的考虑：方法是否需要修改接收器？如果需要，接收器必须是一个指针。
+- 在效率上的考虑：如果接收器很大，比如：一个大的结构体，使用指针接收器会好很多。
+- 在一致性上的考虑：如果类型的某些方法必须有指针接收器，那么其余的方法也应该有指针接收器，所以无论类型如何使用，方法集都是一致的。
+
+回到上面的例子中，从功能使用角度来看：  
+如果 SetName2 方法修改了 s 的字段，调用者是可以看到这些字段值变更的，因为其是指针引用，本质上是同一份。  
+相对 SetName1 方法来讲，该方法是用调用者参数的副本来调用的，本质上是值传递，它所做的任何字段变更对调用者来说是看不见的。
+另外对于基本类型、切片和小结构等类型，值接收器是非常廉价的。  
+
+### go里面interface是什么概念
+
+### go什么场景使用接口
+
+### 函数传递有什么区别
+
+参数都是值传递
+
+### 为什么给变量一个基础类型没有并发安全问题？
+
+### string和byte数组有什么区别？
+
+### go深拷贝，什么时候需要深拷贝
+
+#### 深拷贝（Deep Copy）
+
+拷贝的是数据本身，创造一个样的新对象，新创建的对象与原对象不共享内存，新创建的对象在内存中开辟一个新的内存地址，新对象值修改时不会影响原对象值。既然内存地址不同，释放内存地址时，可分别释放。
+
+值类型的数据，默认全部都是深复制，Array、Int、String、Struct、Float，Bool。
+
+#### 浅拷贝（Shallow Copy）
+
+拷贝的是数据地址，只复制指向的对象的指针，此时新对象和老对象指向的内存地址是一样的，新对象值修改时老对象也会变化。释放内存地址时，同时释放内存地址。
+
+引用类型的数据，默认全部都是浅复制，Slice，Map。
 
 ## 常用关键字
 
@@ -250,31 +364,21 @@ type Context interface {
 
 主要作用是在多个Goroutine组成的树中同步取消信号以减少对资源的消耗和占用；还有传值的功能，但是这个功能我们还是很少用到。
 
-### go并发机制
-
 ### Go语言的互斥锁是怎么实现的？读写锁呢？
-
-### sync pool的实现原理
-
-### go waitgroup的坑
-
-### 读写锁说下
 
 ### go的锁是可重入的吗？
 
 ### 获取不到锁会一直等待吗？
 
-### 如何实现一个线程安全的map
-
 ### 那如何实现一个timeout的锁？
 
 ### golang支持哪些并发机制
 
+### sync pool的实现原理
+
+### golang sync.WaitGroup用过吗？有哪些坑？
+
 ### go用共享内存的方式实现并发如何保证安全？
-
-### golang wait.group用过吗？
-
-### go里面map是并发安全的吗？不是并发安全该如何使用？
 
 ### 怎么理解“不要用共享内存来通信，而是用通信来共享内存”
 
