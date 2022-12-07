@@ -366,21 +366,99 @@ type Context interface {
 
 ### Go语言的互斥锁是怎么实现的？读写锁呢？
 
+Go 语言的 sync.Mutex 由两个字段 state 和 sema 组成。其中 state 表示当前互斥锁的状态，而 sema 是用于控制锁状态的信号量。
+
+```golang
+type Mutex struct {
+ state int32
+ sema  uint32
+}
+```
+
+#### 互斥锁的加锁过程比较复杂，它涉及自旋、信号量以及调度等概念
+
+- 如果互斥锁处于初始化状态，会通过置位 mutexLocked 加锁；
+- 如果互斥锁处于 mutexLocked 状态并且在普通模式下工作，会进入自旋，执行 30 次 PAUSE 指令消耗 CPU 时间等待锁的释放；
+- 如果当前 Goroutine 等待锁的时间超过了 1ms，互斥锁就会切换到饥饿模式；
+- 互斥锁在正常情况下会通过 runtime.sync_runtime_SemacquireMutex 将尝试获取锁的 Goroutine 切换至休眠状态，等待锁的持有者唤醒；
+- 如果当前 Goroutine 是互斥锁上的最后一个等待的协程或者等待的时间小于 1ms，那么它会将互斥锁切换回正常模式；
+
+#### 互斥锁的解锁过程与之相比就比较简单，其代码行数不多、逻辑清晰，也比较容易理解
+
+- 当互斥锁已经被解锁时，调用 sync.Mutex.Unlock 会直接抛出异常；
+- 当互斥锁处于饥饿模式时，将锁的所有权交给队列中的下一个等待者，等待者会负责设置 mutexLocked 标志位；
+- 当互斥锁处于普通模式时，如果没有 Goroutine 等待锁的释放或者已经有被唤醒的 Goroutine 获得了锁，会直接返回；在其他情况下会通过 sync.r- untime_Semrelease 唤醒对应的 Goroutine；
+
+### Go语言的读写锁是怎么实现的？
+
+```golang
+type RWMutex struct {
+ w           Mutex
+ writerSem   uint32
+ readerSem   uint32
+ readerCount int32
+ readerWait  int32
+}
+```
+
+w — 复用互斥锁提供的能力；  
+writerSem 和 readerSem — 分别用于写等待读和读等待写：  
+readerCount 存储了当前正在执行的读操作数量；  
+readerWait 表示当写操作被阻塞时等待的读操作个数；  
+
+虽然读写互斥锁 sync.RWMutex 提供的功能比较复杂，但是因为它建立在 sync.Mutex 上，所以实现会简单很多。我们总结一下读锁和写锁的关系：
+
+- 调用 sync.RWMutex.Lock 尝试获取写锁时；每次 sync.RWMutex.RUnlock 都会将 readerCount 其减一，当它归零时该 Goroutine 会获得写锁;将 readerCount 减少 rwmutexMaxReaders 个数以阻塞后续的读操作；
+- 调用 sync.RWMutex.Unlock 释放写锁时，会先通知所有的读操作，然后才会释放持有的互斥锁；
+
+读写互斥锁在互斥锁之上提供了额外的更细粒度的控制，能够在读操作远远多于写操作时提升性能。
+
 ### go的锁是可重入的吗？
+
+不支持
+
+#### Go 锁设计原则
+
+在工程中使用互斥的根本原因是：为了保护不变量，也可以用于保护内、外部的不变量。  
+基于此，Go 在互斥锁设计上会遵守这几个原则。如下：
+
+- 在调用 mutex.Lock 方法时，要保证这些变量的不变性保持，不会在后续的过程中被破坏。
+- 在调用 mu.Unlock 方法时，要保证：（1）程序不再需要依赖那些不变量。（2）如果程序在互斥锁加锁期间破坏了它们，则需要确保已经恢复了它们。
+
+#### 可重入锁
+
+简单来讲，可重入互斥锁是互斥锁的一种，同一线程对其多次加锁不会产生死锁，又或是导致阻塞。
+
+锁的场景如下：
+
+- 在加锁上：如果是可重入互斥锁，当前尝试加锁的线程如果就是持有该锁的线程时，加锁操作就会成功。
+- 在解锁上：可重入互斥锁一般都会记录被加锁的次数，只有执行相同次数的解锁操作才会真正解锁。
 
 ### 获取不到锁会一直等待吗？
 
+不会，如果当前 Goroutine 等待锁的时间超过了 1ms，互斥锁就会切换到饥饿模式；
+
 ### 那如何实现一个timeout的锁？
 
+[Go超时锁的设计和实现](https://www.jianshu.com/p/4d85661fba0a)
+
 ### golang支持哪些并发机制
+
+- CSP模式
+- 共享内存
 
 ### sync pool的实现原理
 
 ### golang sync.WaitGroup用过吗？有哪些坑？
 
+- 1、Add的协程数量和Done数量一样要相等  
+- 2、如果需要通过函数传递WaitGroup，一定要传递指针，Go函数是值传递
+
 ### go用共享内存的方式实现并发如何保证安全？
 
 ### 怎么理解“不要用共享内存来通信，而是用通信来共享内存”
+
+从架构上来讲，降低共享内存的使用，本来就是解耦和的重要手段之一
 
 ## 调度器
 
@@ -760,31 +838,35 @@ GOGC代表了占用中的内存增长比率，达到该比率时应当触发1次
 - "off" : 代表关闭GC
 - 0 : 代表持续进行垃圾回收，只用于调试
 
-## 常用框架
-
-### golang用到哪些框架
-
-### gin框架的路由是怎么处理的？
-
-## 性能
-
-### go性能分析工具
-
-### go的profile工具？
-
-### 用火焰图的优势？
-
-### 火焰图怎么来寻找瓶颈的？
-
-### 说说火焰图？如何分析的？
-
 ## channel
+
+**目前的 Channel 收发操作均遵循了先进先出的设计，具体规则如下：**
+
+- 先从 Channel 读取数据的 Goroutine 会先接收到数据；
+- 先向 Channel 发送数据的 Goroutine 会得到先发送数据的权利；
+
+### channel底层是用什么实现的？
+
+```golang
+type hchan struct {
+ qcount   uint // Channel 中的元素个数
+ dataqsiz uint // Channel 中的循环队列的长度
+ buf      unsafe.Pointer // Channel 的缓冲区数据指针
+ closed   uint32
+ elemsize uint16 // Channel 能够收发的元素大小
+ elemtype *_type // Channel 能够收发的元素类型
+ sendx    uint // Channel 的发送操作处理到的位置
+ recvx    uint // Channel 的接收操作处理到的位置
+ recvq    waitq // Channel 由于缓冲区空间不足而阻塞的 Goroutine 列表
+ sendq    waitq // Channel 由于缓冲区空间不足而阻塞的 Goroutine 列表
+
+ lock mutex
+}
+```
 
 ### channel和锁对比一下
 
 ### channel的应用场景
-
-### channel底层是用什么实现的？
 
 ### 向为nil的channel发送数据会怎么样
 
@@ -802,19 +884,33 @@ GOGC代表了占用中的内存增长比率，达到该比率时应当触发1次
 
 ### channel和共享内存有什么优劣势？
 
-### channel的底层有了解过吗
-
 ### channel在项目里面是什么作用？
 
 ### 有缓冲和无缓冲channel的区别
-
-### channel实现原理
 
 ### 被close的channel会有什么问题
 
 ### 分布式锁知道哪些？用channel如何实现？
 
 ### 集群用channel如何实现分布式锁
+
+## 常用框架
+
+### golang用到哪些框架
+
+### gin框架的路由是怎么处理的？
+
+## 性能
+
+### go性能分析工具
+
+### go的profile工具？
+
+### 用火焰图的优势？
+
+### 火焰图怎么来寻找瓶颈的？
+
+### 说说火焰图？如何分析的？
 
 ## 常见功能
 
