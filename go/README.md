@@ -840,6 +840,8 @@ GOGC代表了占用中的内存增长比率，达到该比率时应当触发1次
 
 ## channel
 
+[一文读懂channel设计](https://mp.weixin.qq.com/s/buwtTCm_szzeusgxHWmKjQ)
+
 **目前的 Channel 收发操作均遵循了先进先出的设计，具体规则如下：**
 
 - 先从 Channel 读取数据的 Goroutine 会先接收到数据；
@@ -864,19 +866,78 @@ type hchan struct {
 }
 ```
 
+[image](./image/202212082203001.png)
+
 ### channel和锁对比一下
+
+并发问题可以用channel解决也可以用Mutex解决，但是它们的擅长解决的问题有一些不同；  
+channel关注的是并发问题的数据流动，适用于数据在多个协程中流动的场景；  
+而mutex关注的是数据不动，某段时间只给一个协程访问数据的权限，适用于数据位置固定的场景。
 
 ### channel的应用场景
 
+- 数据交流：当作并发的 buffer 或者 queue，解决生产者 - 消费者问题。多个 goroutine 可以并发当作生产者（Producer）和消费者（Consumer）。
+- 数据传递：一个goroutine将数据交给另一个goroutine，相当于把数据的拥有权托付出去。
+- 信号通知：一个goroutine可以将信号(closing，closed，data ready等)传递给另一个或者另一组goroutine。
+- 任务编排：可以让一组goroutine按照一定的顺序并发或者串行的执行，这就是编排功能。
+- 锁机制：利用channel实现互斥机制。
+
 ### 向为nil的channel发送数据会怎么样
 
+```golang
+if c == nil {
+    if !block {
+        return false
+    }
+    gopark(nil, nil, waitReasonChanSendNilChan, traceEvGoStop, 2)
+    throw("unreachable")
+}
+```
+
+往一个nil的channel中发送数据时，调用gopark函数将当前执行的goroutine从running态转入waiting态。
+
 ### 同一个协程里面，对无缓冲channel同时发送和接收数据有什么问题
+
+```golang
+fatal error: all goroutines are asleep - deadlock!
+```
+
+同一个协程里，不能对无缓冲channel同时发送和接收数据，如果这么做会直接报错**死锁**。
+
+对于一个无缓冲的channel而言，只有不同的协程之间一方发送数据一方接受数据才不会阻塞。channel无缓冲时，发送阻塞直到数据被接收，接收阻塞直到读到数据。
 
 ### go利用channel通信的方式
 
 ### channel有缓冲和无缓冲在使用上有什么区别？
 
+#### 无缓冲是同步的
+
+例如 make(chan int)，就是一个送信人去你家门口送信，你不在家他不走，你一定要接下信，他才会走，无缓冲保证信能到你手上。
+
+#### 有缓冲是异步的
+
+例如 make(chan int, 1)，就是一个送信人去你家仍到你家的信箱，转身就走，除非你的信箱满了，他必须等信箱空下来，有缓冲的保证信能进你家的邮箱。
+
 ### 关闭channel有什么作用？
+
+1、资源回收  
+2、通知其他协程  
+
+- 在不改变 channel 自身状态的情况下，无法获知一个 channel 是否关闭。
+- 关闭一个 closed channel 会导致 panic。所以，如果关闭 channel 的一方在不知道 channel 是否处于关闭状态时就去贸然关闭 channel 是很危险的事情。
+- 向一个 closed channel 发送数据会导致 panic。所以，如果向 channel 发送数据的一方不知道 channel 是否处于关闭状态时就去贸然向 channel 发送数据是很危险的事情。
+
+**关于close channel准则：**
+
+- 1)不要在读取端关闭 channel ，因为写入端无法知道 channel 是否已经关闭，往已关闭的 channel 写数据会 panic ；
+- 2)有多个写入端时，不要在写入端关闭 channle ，因为其他写入端无法知道 channel 是否已经关闭，关闭已经关闭的 channel 会发生 panic ；
+- 3)如果只有一个写入端，可以在这个写入端放心关闭 channel 。
+
+### Channel 可能会引发 goroutine 泄漏
+
+泄漏的原因是 goroutine 操作 channel 后，处于发送或接收阻塞状态，而 channel 处于满或空的状态，一直得不到改变。同时，垃圾回收器也不会回收此类资源，进而导致 gouroutine 会一直处于等待队列中，不见天日。
+
+另外，程序运行过程中，对于一个 channel，如果没有任何 goroutine 引用了，gc 会对其进行回收操作，不会引起内存泄漏。
 
 ### go channel实现排序
 

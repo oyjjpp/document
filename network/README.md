@@ -234,6 +234,14 @@ POST 的语义是根据请求负荷（报文主体）对指定的资源做出处
 并发传输  
 服务器主动推送资源  
 
+## HTTP与RPC区别
+
+[HTTP与RPC区别](https://mp.weixin.qq.com/s/H4aWYJ9QC0Rfgw0XNKagLQ)
+
+- 服务发现（）
+- 底层连接形式
+- 传输的内容
+
 ## 网络协议
 
 ## 网络安全
