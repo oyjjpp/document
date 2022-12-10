@@ -46,7 +46,7 @@ config set activedefrag yes
 
 ## redis的分布式锁用过吗？，怎么用的？
 
-[分布式锁](.DistributedLock.md)
+[分布式锁](./DistributedLock.md)
 
 ## redis是怎么实现原子性的?
 
@@ -386,12 +386,6 @@ AOF：将redis执行的有关数据操作命令同步到磁盘上
 
 ```
 
-## 分布式锁
-
-```redis
-setnx + expire
-set nx ex
-```
 
 ## 如果有大量key需要设置同一时间过期，一般要注意什么？
 

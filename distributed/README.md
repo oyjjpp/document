@@ -165,3 +165,142 @@ INSERT INTO `increasing_id`(VALUE) VALUES('');
 |-|-|
 |优点： | 有序递增，可读性强 |
 |缺点： | 占用带宽，每次要向redis进行请求 |
+
+## 几种分布式锁的实现方式
+
+[几种分布式锁的实现方式](https://juejin.cn/post/6844903863363829767)
+[七种方案！探讨Redis分布式锁的正确使用姿势](https://z.itpub.net/article/detail/0A3DCC6FF8BD96C478FF1D7644DBFA57)
+
+### 分布式锁有以下特点
+
+- 可重入
+- 同一时间点,只有一个线程持有锁
+- 容错性, 当锁节点宕机时, 能及时释放锁
+- 高性能
+- 无单点问题
+
+|方案|优点|缺点|
+|-|-|-|
+|数据库|操作简单，容易理解|性能开销大|
+|redis|非阻塞，性能好|运维成本高，操作不好容易引起死锁|
+|memecached|非阻塞，性能好|运维成本高，操作不好容易引起死锁|
+|zookeeper|集群，无单点问题，可冲入，可避免锁无法释放|有性能瓶颈，性能不如redis|
+
+### 基于数据库的分布式
+
+[image](./image/202212101444001.jpg)
+
+基于数据库的分布式锁, 常用的一种方式是使用表的唯一约束特性;当往数据库中成功插入一条数据时, 代表只获取到锁；将这条数据从数据库中删除，则释放送。
+
+**因此需要创建一张锁表：**
+
+```mysql
+CREATE TABLE `methodLock` (
+  `id` int(11) NOT NULL AUTO_INCREMENT COMMENT '主键',
+  `method_name` varchar(64) NOT NULL DEFAULT '' COMMENT '锁定的方法名',
+  `cust_id` varchar(1024) NOT NULL DEFAULT '客户端唯一编码',
+  `update_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '保存数据时间，自动生成',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uidx_method_name` (`method_name `) USING BTREE
+)ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='锁定中的方法';
+```
+
+**mysql 添加锁：**
+
+```mysql
+insert into methodLock(method_name, cust_id) values ('method_name', 'cust_id');
+```
+
+这里cust_id 可以是机器的mac地址+线程编号, 确保一个线程只有唯一的一个编号。通过这个编号， 可以有效的判断是否为锁的创建者，从而进行锁的释放以及重入锁判断
+
+**mysql 释放锁：**
+
+```mysql
+delete from methodLock where method_name ='method_name' and cust_id = 'cust_id';
+```
+
+**重入锁判断：**
+
+```mysql
+select 1 from methodLock where method_name ='method_name' and cust_id = 'cust_id';
+```
+
+**加锁以及释放锁的代码示例：**
+
+```golang
+
+func GetGoProcessId() uint64 {
+ b := make([]byte, 64)
+ b = b[:runtime.Stack(b, false)]
+ b = bytes.TrimPrefix(b, []byte("goroutine "))
+ b = b[:bytes.IndexByte(b, ' ')]
+ n, err := strconv.ParseUint(string(b), 10, 64)
+ if err != nil {
+  panic(err)
+ }
+ return n
+}
+
+func lock(methodName string) bool {
+ success := false
+ custId := GetGoProcessId()
+
+ var err error
+ success, err = insertLock(methodName, fmt.Sprintf("%d", custId))
+
+ if err != nil {
+  return false
+ }
+ return success
+}
+
+func unLock(methodName string) bool {
+ success := false
+ custId := GetGoProcessId()
+
+ var err error
+ success, err = deleteLock(methodName, fmt.Sprintf("%d", custId))
+
+ if err != nil {
+  return false
+ }
+ return success
+}
+
+// 是否可以重入锁
+func checkReentrantLock(methodName string) bool {
+ return true
+}
+
+func insertLock(method, custId string) (bool, error) {
+ return true, nil
+}
+
+func deleteLock(method, custId string) (bool, error) {
+ return true, nil
+}
+
+// 测试案例
+func Test() {
+ methodName := "test"
+ if !checkReentrantLock(methodName) {
+  for !lock(methodName) {
+   time.Sleep(time.Second)
+  }
+ }
+
+ // TODO 业务
+
+ unLock(methodName)
+}
+```
+
+**以上代码还存在一些问题：**
+
+没有失效时间；解决方案:设置一个定时处理, 定期清理过期锁  
+单点问题；解决方案: 弄几个备份数据库，数据库之前双向同步，一旦挂掉快速切换到备库上
+
+### 基于redis的分布式
+
+[image](./image/202210311901.jpg)  
+[基于redis的分布式锁](../redis/distributed_lock.md)

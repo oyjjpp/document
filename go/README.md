@@ -941,17 +941,55 @@ fatal error: all goroutines are asleep - deadlock!
 
 ### go channel实现排序
 
-### go里面channel是什么样的概念
+使用channel进行通信通知，用channel去传递信息，从而控制并发执行顺序。
 
-### channel和共享内存有什么优劣势？
+```golang
 
-### channel在项目里面是什么作用？
 
-### 有缓冲和无缓冲channel的区别
+var wg sync.WaitGroup
 
-### 被close的channel会有什么问题
+func main() {
+ event1 := make(chan struct{}, 1)
+ event2 := make(chan struct{}, 1)
+ event3 := make(chan struct{}, 1)
 
-### 分布式锁知道哪些？用channel如何实现？
+ event1 <- struct{}{}
+ wg.Add(3)
+ start := time.Now().Unix()
+ go Handle("event1", event1, event2)
+ go Handle("event2", event2, event3)
+ go Handle("event3", event3, event1)
+ wg.Wait()
+
+ end := time.Now().Unix()
+ fmt.Println(end - start)
+}
+
+func Handle(event string, inputchan chan struct{}, outputchan chan struct{}) {
+ for i := 0; i < 3; i++ {
+  time.Sleep(1 * time.Second)
+  select {
+  case <-inputchan:
+   fmt.Println(event)
+   outputchan <- struct{}{}
+  }
+ }
+ wg.Done()
+}
+
+
+event1
+event2
+event3
+event1
+event2
+event3
+event1
+event2
+event3
+3
+```
+
 
 ### 集群用channel如何实现分布式锁
 

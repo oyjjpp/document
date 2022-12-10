@@ -53,4 +53,5 @@ if(setnx(lock_id, 1)){
 
 ## 参考
 
-[利用 Redis 实现分布式锁](https://www.cnblogs.com/jojop/p/14008824.html)
+[利用 Redis 实现分布式锁](https://www.cnblogs.com/jojop/p/14008824.html)  
+[七种方案！探讨Redis分布式锁的正确使用姿势](https://z.itpub.net/article/detail/0A3DCC6FF8BD96C478FF1D7644DBFA57)
