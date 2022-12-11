@@ -990,20 +990,128 @@ event3
 3
 ```
 
-
 ### 集群用channel如何实现分布式锁
 
 ## 常用框架
 
 ### golang用到哪些框架
 
+|框架|优点|缺点|参考|
+|-|-|-|-|
+|iris|功能相对完善|依赖库较多【127】|[中文参考](https://www.bookstack.cn/read/studyiris-doc/bb3ca1bc8612e3b2.md) [iris框架解析](https://juejin.cn/post/6844903877507055630)|
+|gin|代码较简洁，社区活跃||<https://github.com/gin-gonic/gin>|
+|beego||性能差，代码冗余|<https://github.com/astaxie/beego> <https://beego.me>|
+|echo|||<https://github.com/labstack/echo> <https://echo.labstack.com>|
+|revel|||<https://github.com/revel/revel><https://revel.github.io>|
+
 ### gin框架的路由是怎么处理的？
 
+[Golang-gin框架路由原理](https://zhuanlan.zhihu.com/p/491337692)  
+[gin框架路由理论](https://www.cnblogs.com/randysun/p/15841366.html#gallery-1)
+
+#### 前缀树算法
+
+前缀树的本质就是一棵查找树，有别于普通查找树，它适用于一些特殊场合，比如用于字符串的查找。比如一个在路由的场景中，有1W个路由字符串，每个字符串长度不等，我们可以使用数组来储存，查找的时间复杂度是O(n)，可以用map来储存，查找的复杂度是O(1)，但是都没法解决动态匹配的问题，如果用前缀树时间复杂度是O(logn)，也可以解决动态匹配参数的问题。
+
+下图展示了前缀树的原理，有以下6个字符串，如果要查找cat字符串，步骤如下：
+
+先拿字符c和root的第一个节点a比较，如果不等，再继续和父节点root的第二个节点比较，直到找到c。  
+再拿字符a和父节点c的第一个节点a比较，结果相等，则继续往下。  
+再拿字符t和父节点a的第一个节点t比较，结果相等，则完成。  
+![image](./image/202212102352001.jpg)
+
+同理，在路由中，前缀树可以规划成如下：
+
+![image](./image/202212102352002.jpg)
+
 ## 性能
+
+[Golang 大杀器之跟踪剖析 trace](https://juejin.cn/post/6844903887757901831)  
+[腾讯 Go 性能优化实战](https://mp.weixin.qq.com/s/Z9DoVGwdAtpbjealQLEMkw)  
+[深度解密Go语言之pprof](https://juejin.cn/post/6844903992720359432)  
+[graphviz 图形页面分析工具](https://graphviz.gitlab.io/download/)  
+[golang pprof 实战](https://blog.wolfogre.com/posts/go-ppof-practice/)  
+[实战Go内存泄露](https://segmentfault.com/a/1190000019222661)
 
 ### go性能分析工具
 
 ### go的profile工具？
+
+pprof库就可以分析程序的运行情况，并且可以提供可视化的功能
+
+**收集数据方式：**  
+1、runtime/pprof： 对于只跑一次的程序，调用pprof包提供的函数，手动开启性能数据采集  
+2、net/http/pprof： 对于HTTP服务，访问pprof提供的HTTP接口，获取性能数据  
+3、go test：使用go test -run=NONE -bench . -memprofile=mem.out  
+
+// 收集cpu数据 默认30s  
+go tool pprof <http://hostname/debug/pprof/profile?seconds=120>  
+// 收集heap数据  
+go tool pprof <http://hostname/debug/pprof/heap>  
+// 收集goroutine数据  
+go tool pprof <http://hostname/debug/pprof/goroutine>  
+// 收集block数据  
+go tool pprof <http://hostname/debug/pprof/block>  
+// 收集mutex数据  
+go tool pprof <http://hostname/debug/pprof/mutex>  
+// 收集trace数据  
+curl <http://hostname/debug/pprof/trace?seconds=10> >   trace.out
+
+**数据分析使用：**  
+生成报告，Web可视化界面、交互式终端三种方式来使用pprof  
+go tool pprof options binary  
+--text    ：纯文本方式  
+--web     ：生成svg并用浏览器打开  
+--svg     ：只生成svg  
+--list funcname : 筛选出正则匹配的funcname的函数信息  
+
+// 对比两个文件  
+go tool pprof -base profile1 profile2  
+
+**数据收集原理：**  
+当CPU性能分析启用后，Go runtime会每10ms暂停一下，记录当前运行的goroutine的调用堆栈及相关数据，当性能分析数据保存到硬盘后，我们就可以分析代码运行状态。
+
+内存性能分析则是在堆（Heap）分配的时候，记录一下调用堆栈，默认情况下是每1000次分配取样一次，这个数值可以改变；栈(Stack)分配由于会随时释放，因此不会被内存分析所记录；由于内存分析是取样方式，并且也因为其记录的是“分配内存”，而不是“使用内存”，因此使用内存能分析工具来准确判断程序具体的内存使用是比较困难的。
+
+阻塞分析是一个很独特的分析，它有点儿类似于CPU性能分析，但是它所记录的是goroutine等待资源所花的时间，阻塞分析对分析程序并发瓶颈非常有帮助，阻塞性能分析可以显示出什么时候出现了大批的goroutine被阻塞了；阻塞性能分析是特殊的分析工具，在排除CPU和内存瓶颈前，不应该用它来分析。
+
+**内存分析案例：**
+
+```golang
+$ go tool pprof mem.out
+Type: alloc_space
+Time: May 1, 2020 at 12:16am (CST)
+Entering interactive mode (type "help" for  commands, "o" for options)
+(pprof) top 5
+Showing nodes accounting for 1084.51MB, 100% of  1084.51MB total
+Showing top 5 nodes out of 14
+      flat  flat%   sum%        cum   cum%
+  490.03MB 45.18% 45.18%   490.03MB 45.18%   strings.(*Builder).WriteString
+  306.18MB 28.23% 73.42%   306.18MB 28.23%   bytes.makeSlice
+  198.50MB 18.30% 91.72%   198.50MB 18.30%   strconv.formatBits
+   89.79MB  8.28%   100%    89.79MB  8.28%   bytes.(*Buffer).String
+         0     0%   100%   306.18MB 28.23%   bytes.(*Buffer).WriteString
+
+
+pprof数值说明
+flat ：采样时，该函数所占内存或时间(不包含函数等待子函数返回)
+flat%  ： flat/总采样值
+sum% ：前面所有flat%的累加值
+cum  ：采样时，该函数所占内存或时间(包含函数等待子函数返回)
+cum% ：cum/总采样值
+```
+
+|类型|描述|备注|
+|-|-|-|
+|allocs|内存分配情况的采集信息||
+|blocks|阻塞操作情况的采集信息||
+|cmdline|显示程序启动命令及参数||
+|goroutine|当前所有协程的堆栈信息||
+|heap|堆上内存使用情况的采集信息|与allocs采样信息一致，allocs是所有对象的内存分配，heap则是活跃对象的内存分配|
+|mutex|锁争用情况的采样信息||
+|profile|CPU占用情况的采样信息||
+|threadcreat|系统线程创建情况的采样信息||
+|trace|程序运行跟踪信息||
 
 ### 用火焰图的优势？
 
