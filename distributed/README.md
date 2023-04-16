@@ -10,6 +10,8 @@
 
 ## raft算法是那种一致性算法
 
+
+
 ## 分布式id
 
 - [一线大厂的分布式唯一 ID 生成方案是什么样的](https://zhuanlan.zhihu.com/p/140078865)
@@ -304,3 +306,5 @@ func Test() {
 
 [image](./image/202210311901.jpg)  
 [基于redis的分布式锁](../redis/distributed_lock.md)
+
+

@@ -1121,6 +1121,19 @@ cum% ：cum/总采样值
 
 ## 常见功能
 
+### runtime包里面的方法
+runtime包是Go语言标准库中的一个包，它提供了与Go程序运行时相关的一些函数和工具。这些函数和工具通常用于调试、性能优化、垃圾回收等方面。下面是一些常用的方法：
+
+GOMAXPROCS: 用于设置并发执行的最大CPU数量。
+Goexit: 用于立即退出当前goroutine。
+Gosched: 用于让出当前goroutine的执行权，以便其他goroutine有机会执行。
+NumCPU: 用于获取可用的CPU数量。
+NumGoroutine: 用于获取当前程序中正在执行的goroutine的数量。
+Stack: 用于获取当前goroutine的调用栈。
+MemStats: 用于获取程序的内存使用情况统计信息。
+GC: 用于手动触发垃圾回收。
+除了这些方法之外，runtime包还提供了一些其他的函数和常量，如FuncForPC、Caller、CallerDepth、Version等等。这些方法通常用于开发高性能、可靠的Go应用程序，对于深入了解和调试Go程序也非常有用。
+
 ### go实现不重启热部署
 
 ### protobuf为什么快
