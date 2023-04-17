@@ -172,6 +172,15 @@ netstat -pnt | grep :3306 | wc // 查看某一个端口的连接数量
 
 ## linux查看cpu负载、磁盘io、内存用什么命令
 
+查看系统负载：top命令
+使用 top 命令可以实时查看系统的 CPU 占用情况、内存占用情况、进程信息等。在 top 命令中，系统负载由三个值组成，分别表示系统负载的 1 分钟、5 分钟和 15 分钟的平均值。
+
+查看磁盘IO：iostat命令
+使用 iostat 命令可以查看磁盘的读写情况、I/O 请求的处理时间、队列长度等信息。
+
+查看内存使用情况：free命令
+使用 free 命令可以查看系统内存的总量、已用内存、空闲内存、缓存和缓冲区使用情况等信息。可以通过 free -h 命令将内存使用情况显示为人类可读的格式。
+
 ### 1、使用top命令
 
 ![image.png](https://p1-juejin.byteimg.com/tos-cn-i-k3u1fbpfcp/5880b940a4f1489595ccea9c494f2d94~tplv-k3u1fbpfcp-watermark.image?)
