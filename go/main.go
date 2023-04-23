@@ -1,11 +1,12 @@
 package main
 
-import "log"
+import (
+	"log"
+	"os"
+)
 
 func main() {
-	b := new(BWM)
-	b.start()
-	b.use()
+	os.Exit(1)
 }
 
 type Car struct{}
