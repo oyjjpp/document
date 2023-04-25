@@ -72,9 +72,9 @@ slice := []int{}
 
 在Go中，array和slice都是用来存储一组相同类型的元素的数据结构，但它们有以下几个区别：
 
-1、定义方式
+定义方式
 
-array和slice的定义方式不同。定义一个array需要指定数组的长度，例如：
+array和slice的定义方式不同，定义一个array需要指定数组的长度例如：
 
 ```golang
 var a [3]int // 定义一个包含3个元素的int类型数组
@@ -86,6 +86,7 @@ var s1 []int      // 声明一个nil的slice
 s2 := []int{1, 2} // 声明一个包含2个元素的slice
 s3 := a[:]        // 从数组a创建一个包含所有元素的slice
 ```
+
 1、长度和容量  
 array的长度是固定的，无法改变。而slice的长度可以动态改变，它的容量也可以随着元素的增加而增加。slice的长度和容量可以使用len和cap函数获取。
 
@@ -95,7 +96,7 @@ array和slice在传递方式上也有区别。当一个array作为参数传递�
 3、底层数组的内存分配  
 array的底层是一个静态分配的数组，它的内存是在编译时分配的。而slice的底层是一个动态分配的数组，它的内存是在运行时分配的。当slice的容量不够时，会重新分配一块更大的内存，并将原来的元素复制到新的内存中。
 
-总之，array和slice都有各自的特点和应用场景。如果需要存储一组固定长度的元素，并且在编译时就知道数组的长度，那么应该使用array。如果需要存储一个长度不确定的序列，并且需要动态改变它的长度，那么应该使用slice。
+array和slice都有各自的特点和应用场景。如果需要存储一组固定长度的元素，并且在编译时就知道数组的长度，那么应该使用array。如果需要存储一个长度不确定的序列，并且需要动态改变它的长度，那么应该使用slice。
 
 ### 如何把数组转化成一个切片
 
@@ -136,8 +137,7 @@ func main() {
 }
 ```
 
-因为是异步协程，所以 map 同一时刻就可能被多个写的协程操作。  
-那么运行后就会报错：fatal error: concurrent map writes
+因为是异步协程，所以 map 同一时刻就可能被多个写的协程操作。那么运行后就会报错：**fatal error: concurrent map writes**
 
 在 Go 中，map本身是非线程安全的数据结构，因为它在并发读写时存在以下几个问题：
 
@@ -289,9 +289,9 @@ fatal error: concurrent map read and map write
 [Go 结构体（struct）是否可以比较？](https://segmentfault.com/a/1190000040099215)  
 
 
-Go中的struct类型是一种用户自定义的复合数据类型，可以包含任意类型的字段。在Go中，我们可以使用==运算符来比较两个struct类型的值是否相等(strruct 是否能比较需要看结构体的元素类型)。
+Go中的struct类型是一种用户自定义的复合数据类型，可以包含任意类型的字段。在Go中，我们可以使用==运算符来比较两个struct类型的值是否相等(struct 是否能比较需要看结构体的元素类型)。
 
-如果两个struct类型的值拥有相同的字段和相同的值，则它们是相等的。需要注意的是，只有当struct类型的所有字段都是可比较的类型时，该struct类型才是可比较的。
+如果两个struct类型的值拥有相同的字段和相同的值，则它们是相等的。需要注意的是，只有当struct类型的所有字段都是可比较的类型时，该struct类型才是可比较的；当其元素类型包含：slice、map、function 时，是不能比较的，若强行比较，就会导致出现例子中的直接报错的情况。
 
 以下是一个简单的示例代码，展示了如何比较两个struct类型的值：
 ```golang
@@ -326,6 +326,8 @@ func main() {
 
 ```
 ### go结构体和结构体指针的区别
+
+[你知道 Go 结构体和结构体指针调用有什么区别吗？](https://segmentfault.com/a/1190000040129295)
 
 ```golang
 type MyStruct struct {
@@ -512,7 +514,7 @@ x: 20 y: 10
 
 在Go语言中，对于基本类型的变量（如int、float、bool等），赋值操作是深拷贝。但对于复合类型的数据（如数组、切片、Map、结构体等），赋值操作只是浅拷贝，即只是复制了数据的引用地址，而不是真正的复制数据。
 
-当我们需要对复合类型的数据进行修改，但同时又需要保留原始数据时，就需要进行深拷贝。深拷贝是指将一个数据的副本完全复制一份，并将其与原始数据分开存放，两者之间没有任何关系。这样，当我们对拷贝后的数据进行修改时，不会影响原始数据。
+当我们需要对复合类型的数据进行修改，但同时又需要保留原始数据时，就需要进行深拷贝。深拷贝是指将一个数据的副本完全复制一份，并将其与原始数据分开存放，两者之间没有任何关系。这样当我们对拷贝后的数据进行修改时，不会影响原始数据。
 
 以下是需要进行深拷贝的一些场景：
 
@@ -581,6 +583,69 @@ func readFile(filename string) (string, error) {
 
 通过defer 函数中调用recover() 恢复崩溃情况
 
+常见引发panic的情况：
+```golang
+// 关闭nil管道
+var ch chan int
+close(ch)
+
+// 关闭已经关闭的管道
+ch := make(chan int, 0)
+close(ch)
+close(ch)
+
+// 向已经关闭的通道写数据
+ch := make(chan int, 0)
+close(ch)
+ch <- 1
+
+// 引用空指针
+type User struct {
+	Name string
+	Age  int
+}
+
+func (u *User) GetInfo() (data *User) {
+	// data = &User{
+	// 	Name: "frank",
+	// 	Age:  18,
+	// }
+	return nil
+}
+
+func UserPoint() {
+	user := new(User)
+	userInfo := user.GetInfo()
+	fmt.Println(userInfo)
+	if userInfo.Age >= 18 {
+		fmt.Println("this is a man")
+	}
+}
+
+// 索引越界
+func OutOfRange() {
+	code := []string{"php", "golang"}
+	fmt.Printf("len:%d cap:%d val:%s \n", len(code), cap(code), code)
+	fmt.Println(code[2])
+}
+
+// 未初始化的map赋值
+func mapAssign() {
+	var data map[string]int
+	// m = make(map[string]int)
+	data["php"] = 80
+}
+
+// 类型断言
+func main() {
+	var name interface{} = "frank"
+	// a, ok := name.(int)
+	// fmt.Println(a, ok)
+	a := name.(int)
+	fmt.Println(a)
+}
+```
+
 ### 异常捕获是如何做的？
 
 - 逐级返回error等待顶成捕获
@@ -618,7 +683,7 @@ func main() {
 
 在这个例子中，我们创建了两个通道ch1和ch2，并启动了两个goroutine，分别向这两个通道发送数据。在主函数中，我们使用select语句从这两个通道中等待数据的到来，一旦其中一个通道中有数据，就会执行对应的case语句。
 
-select语句的应用场景很广泛，可以用于实现超时控制、取消操作、多个goroutine的同步等。比如，在网络编程中，我们可以使用select语句同时监听多个网络通道，从而实现并发处理多个网络请求。
+select语句的应用场景很广泛，可以用于实现超时控制、取消操作、多个goroutine的同步等。在网络编程中，我们可以使用select语句同时监听多个网络通道，从而实现并发处理多个网络请求。
 
 ### make和new
 
@@ -1034,9 +1099,78 @@ goroutine（G）交接（G.nextg）：工作者线程（M's）之间会经常交
 优点：操作简单  
 缺点：不能管控协程的执行完成的顺序  
 
+```golang
+
+func main() {
+	wg := new(sync.WaitGroup)
+	wg.Add(2)
+	go func() {
+		defer func() {
+			wg.Done()
+		}()
+
+		doString("one")
+	}()
+
+	go func() {
+		defer func() {
+			wg.Done()
+		}()
+
+		doString("tow")
+	}()
+
+	wg.Wait()
+}
+
+func doString(str string) {
+	log.Println(str)
+}
+```
+
 **利用缓存管道进行协程之间的通信：**  
 优点：能够管控一组协程结束  
 缺点：不能管控协程的执行完成顺序  
+
+```golang
+
+func main() {
+	ch := make(chan int, 2)
+	go func() {
+		defer func() {
+			ch <- 1
+		}()
+
+		doString("one")
+	}()
+
+	go func() {
+		defer func() {
+			ch <- 1
+		}()
+
+		doString("tow")
+	}()
+
+	count := 0
+	for {
+		select {
+		case _, ok := <-ch:
+			if ok {
+				count++
+			}
+
+			if count == 2 {
+				return
+			}
+		}
+	}
+}
+
+func doString(str string) {
+	log.Println(str)
+}
+```
 
 **利用无缓存管道进行协程之间的通信：**  
 优点：能够管控协程执行完成的顺序  
@@ -1062,6 +1196,34 @@ go func() {
 
 总之，Goroutine是Go语言中的一种轻量级线程，具有轻量级、简单、快速、安全等特点，可以方便地进行并发编程，是Go语言中非常重要的特性之一。
 
+
+### gmp具体的调度策略
+
+GMP（GNU Multiple Precision Arithmetic Library）是一种高精度计算库，支持多线程和多处理器。在GMP中，调度策略是用来分配线程和任务的方式。GMP中具体的调度策略如下：
+
+1、按需分配：按照任务的优先级和可用的处理器数量，将任务动态地分配给处理器。这种策略适用于任务负载比较均衡的情况。
+
+2、轮询分配：按照一定的顺序将任务分配给处理器。每个处理器依次获取任务并执行，直到完成所有任务。这种策略适用于任务负载不均衡的情况。
+
+3、多队列分配：将任务按照不同的优先级分配到多个任务队列中。不同的队列采用不同的调度策略，例如轮询分配或按需分配。这种策略可以提高任务执行的效率。
+
+4、周期性分配：周期性地将任务分配给处理器。例如，每秒钟将所有任务平均地分配给处理器。这种策略适用于任务负载比较固定的情况。
+
+5、基于负载的分配：根据处理器的负载情况，将任务分配给空闲的处理器。例如，当某个处理器负载过高时，将任务分配给负载比较低的处理器。这种策略可以提高任务执行的效率。
+
+不同的调度策略适用于不同的任务负载和硬件环境。在GMP中，可以根据具体的应用场景选择不同的调度策略，以提高任务执行的效率。
+
+Go语言的运行时系统（runtime）也实现了类似于GMP的调度器，称为M:N调度器（M个goroutine对应N个系统线程）。它采用了以下调度策略：
+
+1、抢占式调度：当一个goroutine发生阻塞、调用了系统函数、或者达到了某个时间片时，调度器会主动中断它的执行，切换到另一个处于就绪状态的goroutine。这种策略可以避免某个goroutine长时间占用CPU资源，提高系统的并发性能。
+
+2、非抢占式调度：当一个goroutine发生阻塞、调用了系统函数、或者主动调用runtime.Gosched()函数时，才会切换到另一个处于就绪状态的goroutine。这种策略可以避免上下文切换的开销，提高系统的性能。
+
+3、work stealing调度：当某个系统线程执行的goroutine数量不足时，会从其他系统线程所属的本地队列中偷取一些goroutine。这种策略可以避免某些系统线程处于空闲状态，提高系统的并发性能。
+
+4、局部队列+全局队列调度：每个系统线程都有一个本地队列，用来存储它需要执行的goroutine。当某个goroutine阻塞、调用了系统函数、或者达到了某个时间片时，会将它放入全局队列。其他系统线程可以从全局队列中获取goroutine执行。这种策略可以提高系统的并发性能。
+
+在Go语言中，调度器的具体实现是由runtime包提供的，可以通过设置环境变量GOMAXPROCS来调整系统线程的数量，从而影响调度器的性能表现。
 
 ### goroutine创建数量有限制吗？
 
@@ -1483,6 +1645,24 @@ GOGC代表了占用中的内存增长比率，达到该比率时应当触发1次
 - "off" : 代表关闭GC
 - 0 : 代表持续进行垃圾回收，只用于调试
 
+
+### go语言的时候垃圾回收，写代码的时候如何减少小对象分配
+
+在 Go 语言中，垃圾回收（Garbage Collection, GC）是自动进行的，由运行时系统（Runtime）管理。运行时系统会定期扫描内存中的对象，并回收不再使用的内存，以避免内存泄漏和use-after-free 错误。因此，在 Go 语言中，程序员无需手动管理内存，可以专注于编写业务逻辑，提高生产力和代码质量。
+
+尽管垃圾回收机制可以自动管理内存，但是过多的小对象分配会导致垃圾回收器频繁地运行，从而导致程序性能下降。因此，在编写代码时，可以采用以下方式来减少小对象分配，以提高程序性能：
+
+1、使用对象池（Object Pool）：在程序初始化阶段创建一定数量的对象，并将它们存储在对象池中，当需要使用对象时，从对象池中获取对象，使用完后将对象返回到对象池中，避免频繁地分配和回收内存。
+
+2、尽量避免使用不必要的结构体（Struct）：结构体通常需要占用一定的内存空间，因此尽量避免在小数据类型中使用结构体。
+
+3、使用值接收器（Value Receiver）：在定义方法时，如果方法只是读取数据而不修改数据，则应该使用值接收器而不是指针接收器。使用指针接收器会导致频繁地分配和回收内存。
+
+4、使用缓冲区（Buffer）：在处理大量小数据时，可以使用缓冲区来避免频繁地分配和回收内存。例如，在处理网络数据时，可以使用 bufio 包提供的缓冲区。
+
+5、手动管理内存：尽管 Go 语言不需要手动管理内存，但是在一些特殊情况下，可以使用内存池等手动管理内存的技术来减少小对象分配，提高程序性能。但是需要注意，手动管理内存会增加代码复杂性和出错的风险，应该谨慎使用。
+
+
 ## channel
 
 [一文读懂channel设计](https://mp.weixin.qq.com/s/buwtTCm_szzeusgxHWmKjQ)
@@ -1511,14 +1691,14 @@ type hchan struct {
 }
 ```
 
-[image](./image/202212082203001.png)
+![image](./image/202212082203001.png)
 
 ### channel和锁对比一下
 
-"Channel" 和 "锁" 都是用于并发编程的概念，但它们有不同的作用和实现方式。
+"channel" 和 "锁" 都是用于并发编程的概念，但它们有不同的作用和实现方式。
 
-1、Channel（通道）  
-通道是并发编程中一种用于协调多个线程之间通信和同步的机制。通道允许一个线程将数据发送到通道中，而另一个线程则可以从通道中接收数据。通道可以是同步的或异步的，这取决于它们的实现方式。
+1、channel（通道）  
+通道是并发编程中一种用于协调多个线程之间通信和同步的机制；通道允许一个线程将数据发送到通道中，而另一个线程则可以从通道中接收数据；通道可以是同步的或异步的，这取决于它们的实现方式。
 
 在同步通道中，发送线程会等待接收线程接收数据，直到数据被接收为止。在异步通道中，发送线程不会等待接收线程接收数据，而是立即返回。
 
@@ -1530,25 +1710,173 @@ type hchan struct {
 锁的一个主要优点是它们可以确保同一时刻只有一个线程可以访问共享资源。这可以避免数据竞争和其他并发问题。
 
 3、对比  
+
 通道和锁都可以用于协调多个线程之间的访问和同步，但它们的实现方式和作用略有不同。通道通常用于线程之间传递数据，而锁通常用于控制对共享资源的访问。另外，通道可以避免线程之间的竞争条件，而锁可以避免资源竞争条件。因此，选择使用通道还是锁取决于要解决的问题和所需的功能。
 
-### channel的应用场景
+### channel的应用场景（使用场景）
 
 通道（Channel）是一种在并发编程中常用的机制，用于在不同线程之间传递数据和同步操作。
 
-以下是一些通道的常见应用场景：
+1、停止信号
+```golang
+func main() {
+    rand.Seed(time.Now().UnixNano())
 
-1、任务分发：将一个任务分解为多个子任务，每个子任务分配给不同的工作线程处理，线程可以使用通道在任务之间传递数据。
+    const Max = 100000
+    const NumSenders = 1000
 
-2、事件驱动：使用通道在多个并发处理单元之间传递事件消息。例如，一个GUI应用程序可以使用通道来传递事件消息，使得事件处理程序能够响应用户交互。
+    dataCh := make(chan int, 100)
+    stopCh := make(chan struct{})
 
-3、串行化：使用通道来将多个并发操作串行化，保证操作的正确顺序。例如，一个并发任务需要先进行初始化，然后进行计算，最后输出结果。使用通道可以保证操作按照正确的顺序执行。
+    // senders
+    for i := 0; i < NumSenders; i++ {
+        go func() {
+            for {
+                select {
+                case <- stopCh:
+                    return
+                case dataCh <- rand.Intn(Max):
+                }
+            }
+        }()
+    }
 
-4、数据共享：使用通道在多个线程之间共享数据。线程可以使用通道读取和写入共享的数据。
+    // the receiver
+    go func() {
+        for value := range dataCh {
+            if value == Max-1 {
+                fmt.Println("send stop signal to senders.")
+                close(stopCh)
+                return
+            }
 
-5、限流：使用通道来限制处理速率，防止资源过度占用。例如，当处理器的负载过高时，可以通过限制任务的产生速率来平衡系统的负载。
+            fmt.Println(value)
+        }
+    }()
 
-总之，通道是一种非常强大的并发编程机制，可以在多个并发操作之间实现数据传输和同步操作。可以通过合理的使用通道来简化并发编程的复杂度，避免竞态条件和死锁等问题。
+    select {
+    case <- time.After(time.Hour):
+    }
+}
+```
+
+```golang
+// 声明
+ctx, cancel := context.WithCancel(context.Background())
+// 延迟队列
+go func(ctx context.Context) {
+    queue.InitTimer(ctx)
+}(ctx)
+
+func InitTimer(ctx context.Context) {
+	ticker := time.NewTicker(5 * time.Second)
+
+	queue := &Queue{ctx: ctx}
+
+	for {
+		select {
+		case <-ticker.C:
+			go func() {
+				queue.pull()
+			}()
+		case <-ctx.Done():
+			ticker.Stop()
+			global.TeaLog.Info("quit queue")
+			return
+		}
+	}
+}
+
+cancel()
+```
+2、任务定时(超时控制、定时任务)  
+与 timer 结合，一般有两种玩法：实现超时控制，实现定期执行某个任务。  
+
+有时候，需要执行某项操作，但又不想它耗费太长时间，上一个定时器就可以搞定：等待 100 ms 后，如果 s.stopc 还没有读出数据或者被关闭，就直接结束。这是来自 etcd 源码里的一个例子，这样的写法随处可见。
+```golang
+select {
+    case <-time.After(100 * time.Millisecond):
+    case <-s.stopc:
+        return false
+}
+```
+定时执行某个任务：
+```golang
+func worker() {
+    ticker := time.Tick(1 * time.Second)
+    for {
+        select {
+        case <- ticker:
+            // 执行定时任务
+            fmt.Println("执行 1s 定时任务")
+        }
+    }
+}
+```
+
+3、解耦生产方和消费方  
+
+服务启动时，启动 n 个 worker，作为工作协程池，这些协程工作在一个 for {} 无限循环里，从某个 channel 消费工作任务并执行：
+
+```golang
+func main() {
+    taskCh := make(chan int, 100)
+    go worker(taskCh)
+
+    // 塞任务
+    for i := 0; i < 10; i++ {
+        taskCh <- i
+    }
+
+    // 等待 1 小时 
+    select {
+    case <-time.After(time.Hour):
+    }
+}
+
+func worker(taskCh <-chan int) {
+    const N = 5
+    // 启动 5 个工作协程
+    for i := 0; i < N; i++ {
+        go func(id int) {
+            for {
+                task := <- taskCh
+                fmt.Printf("finish task: %d by worker %d\n", task, id)
+                time.Sleep(time.Second)
+            }
+        }(i)
+    }
+}
+```
+
+4、控制并发数
+
+```golang
+type Limit struct {
+ n   int
+ c   chan struct{}
+ ctx context.Context
+}
+
+func NewLimit(ctx context.Context, n int) *Limit {
+ return &Limit{
+  n:   n,
+  c:   make(chan struct{}, n),
+  ctx: ctx,
+ }
+}
+
+// Run f in a new goroutine but with limit.
+func (g *Limit) Run(f func(ctx context.Context)) {
+ g.c <- struct{}{}
+ go func() {
+  f(g.ctx)
+  <-g.c
+ }()
+}
+
+```
+
 
 ### 向为nil的channel发送数据会怎么样
 
@@ -1569,6 +1897,13 @@ ch := make(chan int) // 初始化一个整数类型的通道
 ```
 在初始化后，通道才会在内存中分配空间，才能安全地用于发送和接收数据。
 
+|操作|nil channel|closed channel|channel|
+|-|-|-|-|
+|close|panic|panic|正常关闭|
+|读 <- ch|阻塞|读到对应类型的零值|阻塞或正常读取数据。缓冲型 channel 为空或非缓冲型 channel 没有等待发送者时会阻塞|
+|写 ch <-|阻塞|panic|阻塞或正常写入数据。非缓冲型 channel 没有等待接收者或缓冲型 channel buf 满时会被阻塞|
+
+总结一下，发生 panic 的情况有三种：向一个关闭的 channel 进行写操作；关闭一个 nil 的 channel；重复关闭一个 channel。
 
 ### 同一个协程里面，对无缓冲channel同时发送和接收数据有什么问题
 
@@ -1689,7 +2024,6 @@ func main() {
 使用channel进行通信通知，用channel去传递信息，从而控制并发执行顺序。
 
 ```golang
-
 
 var wg sync.WaitGroup
 
@@ -2158,11 +2492,12 @@ func printName(a Animal) {
 ```
 在上面的示例中，Animal 接口包含一个 getName() 方法，Dog 和 Cat 结构体都实现了这个接口。
 
-### 如何拿到多个goroutine的返回值，如何区别他们
+### 如果拿到多个goroutine的返回值，如何区别他们
 
-在Go中，可以使用channel来区分多个goroutine的返回值。一个channel是Go中的一种基本数据结构，用于在goroutine之间传输数据。在使用goroutine时，我们可以创建多个channel，并将每个goroutine的返回值发送到不同的channel中。这样，我们就可以轻松地区分多个goroutine的返回值。
+在Go中，可以使用channel来区分多个goroutine的返回值。channel是Go中的一种基本数据结构，用于在goroutine之间传输数据。在使用goroutine时，我们可以创建多个channel，并将每个goroutine的返回值发送到不同的channel中。这样我们就可以轻松地区分多个goroutine的返回值。
 
 以下是一个示例程序，演示如何使用channel来区分多个goroutine的返回值：
+
 ```golang
 package main
 

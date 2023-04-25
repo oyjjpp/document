@@ -1,28 +1,11 @@
 package main
 
-import (
-	"log"
-	"os"
-)
+import "fmt"
 
 func main() {
-	os.Exit(1)
-}
-
-type Car struct{}
-
-func (c *Car) use() {
-	log.Println("car useA")
-}
-
-func (c Car) start() {
-	log.Println("start")
-}
-
-type BWM struct {
-	Car
-}
-
-func (b BWM) use() {
-	log.Println("bmw use")
+	var name interface{} = "frank"
+	// a, ok := name.(int)
+	// fmt.Println(a, ok)
+	a := name.(int)
+	fmt.Println(a)
 }
