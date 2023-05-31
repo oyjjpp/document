@@ -24,6 +24,13 @@
 
 ### k8s有几种service类型
 
+- Deployment
+- StatefulSet
+- DaemonSet
+- Job
+- Pod
+- Server
+
 ### k8s pod切换策略
 
 ### 用k8s主要做哪些功能？
